@@ -510,6 +510,14 @@ function getAvatarUrl(email) {
 function updateHeaderUserInfo() {
   console.log('[PronoSPIc] updateHeaderUserInfo called');
   console.log('[PronoSPIc] currentUserEmail:', currentUserEmail);
+  console.log('[PronoSPIc] profiles loaded:', profiles.length);
+  
+  // Wait for user email and profiles to be available
+  if (!currentUserEmail || profiles.length === 0) {
+    console.log('[PronoSPIc] Waiting for user email or profiles to load...');
+    setTimeout(updateHeaderUserInfo, 300);
+    return;
+  }
   
   var userNameElement = document.getElementById('header-user-name');
   var avatarElement = document.getElementById('header-avatar');
@@ -1356,5 +1364,7 @@ if (!isInsideGrist()) {
     if (isOwner) { await seedTeams(); await seedMatches(); }
     await loadAllData();
     renderCurrentTab();
+    // Ensure header is updated after everything is loaded
+    setTimeout(updateHeaderUserInfo, 100);
   })();
 }
