@@ -26,6 +26,9 @@ var i18n = {
     refreshResults: 'Rafraîchir les résultats', refreshing: 'Récupération...',
     bonusTitle: 'Pronos Bonus', bonusWinner: 'Vainqueur final', bonusTopScorer: 'Meilleur buteur',
     bonusSave: 'Enregistrer mes bonus', bonusSaved: 'Bonus enregistrés ✓',
+    topScorersTitle: 'Classement des buteurs', goals: 'buts', noGoalsYet: 'Aucun but enregistré',
+    validateBonus: 'Valider les bonus', bonusValidated: 'Bonus validés ✓',
+    realWinner: 'Vainqueur réel', realTopScorer: 'Meilleur buteur réel',
     profileTitle: 'Mon Profil', profileName: 'Nom d\'affichage', profileSave: 'Enregistrer mon profil',
     profileSaved: 'Profil enregistré ✓', profileAvatar: 'URL de l\'avatar (optionnel)',
     avatarGenerator: 'Générateur d\'avatar', avatarStyle: 'Style', avatarGenerate: 'Générer un avatar',
@@ -48,6 +51,9 @@ var i18n = {
     refreshResults: 'Refresh Results', refreshing: 'Fetching...',
     bonusTitle: 'Bonus Predictions', bonusWinner: 'Tournament winner', bonusTopScorer: 'Top scorer',
     bonusSave: 'Save bonus', bonusSaved: 'Bonus saved ✓',
+    topScorersTitle: 'Top scorers', goals: 'goals', noGoalsYet: 'No goals recorded',
+    validateBonus: 'Validate bonus', bonusValidated: 'Bonus validated ✓',
+    realWinner: 'Actual winner', realTopScorer: 'Actual top scorer',
     profileTitle: 'My Profile', profileName: 'Display Name', profileSave: 'Save Profile',
     profileSaved: 'Profile saved ✓', profileAvatar: 'Avatar URL (optional)',
     avatarGenerator: 'Avatar Generator', avatarStyle: 'Style', avatarGenerate: 'Generate Avatar',
@@ -85,6 +91,7 @@ var allPredictions = [];
 var bonusData = [];
 var profiles = [];
 
+var topScorers = [];
 var activeTab = 'matches';
 var activePhaseFilter = 'all';
 var activeGroupFilter = '';
@@ -862,6 +869,25 @@ function renderGroupsView() {
     });
     html += '</tbody></table></div>';
   });
+  // Top Scorers section
+  if (topScorers.length > 0) {
+    html += '<div class="group-card" style="grid-column: 1 / -1;">';
+    html += '<div class="group-title">⚽ ' + t('topScorersTitle') + '</div>';
+    html += '<table class="group-table"><thead><tr><th>#</th><th></th><th>' + t('goals') + '</th></tr></thead><tbody>';
+    var showCount = Math.min(topScorers.length, 20);
+    for (var tsi = 0; tsi < showCount; tsi++) {
+      var sc = topScorers[tsi];
+      html += '<tr' + (tsi === 0 ? ' style="background:#fef9c3;"' : '') + '>';
+      html += '<td style="font-weight:800;color:#7c1d4e;">' + (tsi + 1) + '</td>';
+      html += '<td style="text-align:left;"><strong>' + sanitize(sc.name) + '</strong>';
+      if (sc.team) html += ' <span style="font-size:10px;color:#94a3b8;">(' + sanitize(sc.team) + ')</span>';
+      html += '</td>';
+      html += '<td style="font-weight:800;font-size:16px;">' + sc.goals + '</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+  }
+
   container.innerHTML = html;
 }
 
@@ -1257,6 +1283,28 @@ function renderAdmin() {
   html += '<button class="btn-prono" onclick="recalculateAllPoints()" style="flex:1;min-width:200px;">' + t('recalculate') + '</button>';
   html += '</div>';
 
+  // Bonus validation section
+  html += '<div style="background:white;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #e2e8f0;">';
+  html += '<h3 style="margin-bottom:12px;">🎯 ' + t('validateBonus') + '</h3>';
+  html += '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">';
+  html += '<div style="flex:1;min-width:150px;">';
+  html += '<label style="font-size:11px;font-weight:600;color:#64748b;">' + t('realWinner') + '</label>';
+  html += '<select id="admin-winner" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">';
+  html += '<option value="">--</option>';
+  TEAM_DATA.forEach(function(team) {
+    html += '<option value="' + team.code + '">' + (currentLang === 'fr' ? team.name_fr : team.name_en) + '</option>';
+  });
+  html += '</select></div>';
+  html += '<div style="flex:1;min-width:150px;">';
+  html += '<label style="font-size:11px;font-weight:600;color:#64748b;">' + t('realTopScorer') + '</label>';
+  html += '<input type="text" id="admin-scorer" placeholder="Ex: Mbappé" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">';
+  if (topScorers.length > 0) {
+    html += '<div style="font-size:10px;color:#94a3b8;margin-top:4px;">Top actuel : <strong>' + sanitize(topScorers[0].name) + '</strong> (' + topScorers[0].goals + ' ' + t('goals') + ')</div>';
+  }
+  html += '</div>';
+  html += '<button class="admin-save-btn" onclick="validateBonusPoints()" style="padding:8px 20px;">' + t('validateBonus') + '</button>';
+  html += '</div></div>';
+
   matches.forEach(function(m) {
     if (m.t1 === 'TBD' && m.t2 === 'TBD') return;
     var team1 = getTeam(m.t1); var team2 = getTeam(m.t2);
@@ -1330,6 +1378,29 @@ async function recalculateAllPoints() {
   }
   predictions = allPredictions.filter(function(p) { return (p.email || '').toLowerCase().trim() === (currentUserEmail || '').toLowerCase().trim(); });
   showToast(t('recalcDone'), 'success');
+}
+
+async function validateBonusPoints() {
+  var winnerCode = document.getElementById('admin-winner').value;
+  var scorerName = document.getElementById('admin-scorer').value.trim().toLowerCase();
+  if (!winnerCode && !scorerName) { showToast(currentLang === 'fr' ? 'Remplis au moins un champ' : 'Fill at least one field', 'error'); return; }
+
+  var actions = [];
+  bonusData.forEach(function(b) {
+    var pts = 0;
+    if (winnerCode && b.winner === winnerCode) pts += 5;
+    if (scorerName && (b.scorer || '').toLowerCase().trim() === scorerName) pts += 3;
+    if (pts !== (b.pts || 0)) {
+      b.pts = pts;
+      actions.push(['UpdateRecord', BONUS_TABLE, b.id, { Points: pts }]);
+    }
+  });
+
+  if (actions.length > 0) {
+    try { await grist.docApi.applyUserActions(actions); } catch (e) { console.error(e); }
+  }
+  showToast(t('bonusValidated'), 'success');
+  renderCurrentTab();
 }
 
 // =============================================================================
@@ -1491,8 +1562,43 @@ async function fetchMatchResults() {
       }
     }
     
+    // Extract top scorers from API data (goals per player)
+    var scorerMap = {};
+    if (data.rounds) {
+      for (var ri = 0; ri < data.rounds.length; ri++) {
+        var roundMatches = data.rounds[ri].matches || [];
+        for (var rmi = 0; rmi < roundMatches.length; rmi++) {
+          var rm = roundMatches[rmi];
+          var goals = rm.goals || [];
+          for (var gi = 0; gi < goals.length; gi++) {
+            var g = goals[gi];
+            var name = g.name || g.player || '';
+            if (name) {
+              if (!scorerMap[name]) scorerMap[name] = { name: name, team: g.team || '', goals: 0 };
+              scorerMap[name].goals++;
+            }
+          }
+        }
+      }
+    }
+    if (data.matches) {
+      for (var mi = 0; mi < data.matches.length; mi++) {
+        var mGoals = data.matches[mi].goals || [];
+        for (var mgi = 0; mgi < mGoals.length; mgi++) {
+          var mg = mGoals[mgi];
+          var mName = mg.name || mg.player || '';
+          if (mName) {
+            if (!scorerMap[mName]) scorerMap[mName] = { name: mName, team: mg.team || '', goals: 0 };
+            scorerMap[mName].goals++;
+          }
+        }
+      }
+    }
+    topScorers = Object.values(scorerMap).sort(function(a, b) { return b.goals - a.goals; });
+
     if (updatedMatches.length === 0) {
-      showToast(currentLang === 'fr' ? 'Aucun nouveau résultat' : 'No new results', 'info');
+      showToast(currentLang === 'fr' ? 'Données buteurs mises à jour' : 'Scorer data updated', 'info');
+      renderCurrentTab();
       return;
     }
 
