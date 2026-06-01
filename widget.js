@@ -23,6 +23,7 @@ var i18n = {
     myPoints: 'Mes points', myPronos: 'Pronos', myExact: 'Exacts', myRate: 'Réussite',
     adminTitle: 'Saisie des résultats', adminSave: 'Enregistrer', adminOnly: 'Réservé au propriétaire',
     recalculate: 'Recalculer les points', recalcDone: 'Points recalculés',
+    refreshResults: 'Rafraîchir les résultats', refreshing: 'Récupération...',
     bonusTitle: 'Pronos Bonus', bonusWinner: 'Vainqueur final', bonusTopScorer: 'Meilleur buteur',
     bonusSave: 'Enregistrer mes bonus', bonusSaved: 'Bonus enregistrés ✓',
     tbd: 'À déterminer', matchNumber: 'Match', vs: '-',
@@ -40,6 +41,7 @@ var i18n = {
     myPoints: 'My points', myPronos: 'Predictions', myExact: 'Exact', myRate: 'Success',
     adminTitle: 'Enter Results', adminSave: 'Save', adminOnly: 'Owner only',
     recalculate: 'Recalculate points', recalcDone: 'Points recalculated',
+    refreshResults: 'Refresh Results', refreshing: 'Fetching...',
     bonusTitle: 'Bonus Predictions', bonusWinner: 'Tournament winner', bonusTopScorer: 'Top scorer',
     bonusSave: 'Save bonus', bonusSaved: 'Bonus saved ✓',
     tbd: 'TBD', matchNumber: 'Match', vs: '-',
@@ -788,7 +790,10 @@ function renderAdmin() {
   }
 
   var html = '<h2 style="margin-bottom:16px;">' + t('adminTitle') + '</h2>';
-  html += '<button class="btn-prono" onclick="recalculateAllPoints()" style="margin-bottom:16px;max-width:300px;">' + t('recalculate') + '</button>';
+  html += '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">';
+  html += '<button class="btn-prono" onclick="fetchMatchResults()" style="flex:1;min-width:200px;">🔄 ' + t('refreshResults') + '</button>';
+  html += '<button class="btn-prono" onclick="recalculateAllPoints()" style="flex:1;min-width:200px;">' + t('recalculate') + '</button>';
+  html += '</div>';
 
   matches.forEach(function(m) {
     if (m.t1 === 'TBD' && m.t2 === 'TBD') return;
@@ -905,6 +910,105 @@ async function detectRole() {
   // Hide admin tab for non-owners
   var adminBtn = document.querySelector('[data-tab="admin"]');
   if (adminBtn) adminBtn.style.display = isOwner ? '' : 'none';
+}
+
+// =============================================================================
+// API INTEGRATION FOR MATCH RESULTS
+// =============================================================================
+
+var WORLD_CUP_API_URL = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+var API_KEY = ''; // Can be configured for future APIs that require authentication
+
+// Team name mapping to match widget team codes
+var TEAM_NAME_MAPPING = {
+  'Mexico': 'MEX', 'South Korea': 'KOR', 'South Africa': 'RSA', 'Czech Republic': 'CZE',
+  'Canada': 'CAN', 'Bosnia & Herzegovina': 'BIH', 'Qatar': 'QAT', 'Switzerland': 'SUI',
+  'Brazil': 'BRA', 'Morocco': 'MAR', 'Haiti': 'HAI', 'Scotland': 'SCO',
+  'USA': 'USA', 'Paraguay': 'PAR', 'Australia': 'AUS', 'Turkey': 'TUR',
+  'Argentina': 'ARG', 'Peru': 'PER', 'Chile': 'CHI', 'Ecuador': 'ECU',
+  'France': 'FRA', 'Netherlands': 'NED', 'Senegal': 'SEN', 'Poland': 'POL',
+  'England': 'ENG', 'Wales': 'WAL', 'IR Iran': 'IRN', 'USA': 'USA',
+  'Spain': 'ESP', 'Germany': 'GER', 'Japan': 'JPN', 'Costa Rica': 'CRC',
+  'Belgium': 'BEL', 'Croatia': 'CRO', 'Canada': 'CAN', 'Morocco': 'MAR',
+  'Portugal': 'POR', 'Ghana': 'GHA', 'Uruguay': 'URU', 'South Korea': 'KOR'
+};
+
+async function fetchMatchResults() {
+  try {
+    showToast('Récupération des résultats...', 'info');
+    
+    const response = await fetch(WORLD_CUP_API_URL);
+    if (!response.ok) {
+      throw new Error('Erreur réseau: ' + response.status);
+    }
+    
+    const data = await response.json();
+    const updatedMatches = [];
+    
+    // Process each match from API
+    for (const apiMatch of data.matches) {
+      // Find corresponding match in our data
+      const localMatch = matches.find(m => {
+        const team1Name = teamName(m.t1);
+        const team2Name = teamName(m.t2);
+        
+        return (team1Name === apiMatch.team1 && team2Name === apiMatch.team2) ||
+               (team1Name === apiMatch.team2 && team2Name === apiMatch.team1);
+      });
+      
+      if (localMatch && apiMatch.score && apiMatch.score.ft) {
+        const [apiScore1, apiScore2] = apiMatch.score.ft;
+        
+        // Update if scores are different and match has results
+        if (localMatch.s1 !== apiScore1 || localMatch.s2 !== apiScore2) {
+          updatedMatches.push({
+            id: localMatch.id,
+            num: localMatch.num,
+            oldScore1: localMatch.s1,
+            oldScore2: localMatch.s2,
+            newScore1: apiScore1,
+            newScore2: apiScore2
+          });
+        }
+      }
+    }
+    
+    if (updatedMatches.length === 0) {
+      showToast('Aucun nouveau résultat trouvé', 'info');
+      return;
+    }
+    
+    // Update matches in Grist
+    const actions = updatedMatches.map(m => [
+      'UpdateRecord', MATCHES_TABLE, m.id, 
+      { Score1: m.newScore1, Score2: m.newScore2 }
+    ]);
+    
+    await grist.docApi.applyUserActions(actions);
+    
+    // Update local data
+    updatedMatches.forEach(m => {
+      const localMatch = matches.find(mm => mm.id === m.id);
+      if (localMatch) {
+        localMatch.s1 = m.newScore1;
+        localMatch.s2 = m.newScore2;
+      }
+    });
+    
+    // Recalculate points for updated matches
+    for (const m of updatedMatches) {
+      await recalculatePointsForMatch(m.num, m.newScore1, m.newScore2);
+    }
+    
+    // Refresh UI
+    renderCurrentTab();
+    
+    showToast(`${updatedMatches.length} résultat(s) mis à jour ✓`, 'success');
+    
+  } catch (error) {
+    console.error('Erreur lors de la récupération des résultats:', error);
+    showToast('Erreur: ' + error.message, 'error');
+  }
 }
 
 // =============================================================================
