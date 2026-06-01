@@ -988,7 +988,7 @@ function generateNewAvatars() {
     html += 'onmouseout="this.style.borderColor=\'#e2e8f0\'; this.style.transform=\'scale(1)\'" ';
     html += 'onclick="selectGeneratedAvatar(\'' + sanitize(avatar.url) + '\')">';
     html += '<img src="' + sanitize(avatar.url) + '" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 4px;" ';
-    html += 'onerror="console.log(\'Avatar load error for URL:', \'' + sanitize(avatar.url) + '\'); this.src=\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMC4wMCI+Pjwvc3ZnPg==\';">';
+    html += 'onerror="console.log(\'Avatar load error\'); this.src=\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMC4wMCI+Pjwvc3ZnPg==\';">';
     html += '<div style="font-size: 10px; color: #94a3b8;">' + t('avatarUseGenerated') + '</div>';
     html += '</div>';
   });
@@ -1020,6 +1020,7 @@ function selectGeneratedAvatar(avatarUrl) {
 window.generateNewAvatars = generateNewAvatars;
 window.selectGeneratedAvatar = selectGeneratedAvatar;
 window.changeAvatarStyle = changeAvatarStyle;
+window.switchTab = switchTab;
 
 async function saveProfile() {
   var displayName = document.getElementById('profile-display-name').value.trim();
