@@ -916,8 +916,10 @@ function renderProfile() {
   html += '</div>';
   container.innerHTML = html;
   
-  // Generate initial avatars
-  generateNewAvatars();
+  // Generate initial avatars after DOM is ready
+  setTimeout(function() {
+    generateNewAvatars();
+  }, 100);
 }
 
 function updateAvatarPreview(url) {
@@ -935,9 +937,17 @@ function changeAvatarStyle(style) {
 }
 
 function generateNewAvatars() {
+  console.log('[PronoSPIc] generateNewAvatars called with style:', currentAvatarStyle);
+  
   var avatars = generateMultipleAvatars(currentAvatarStyle, 6);
+  console.log('[PronoSPIc] Generated avatars:', avatars);
+  
   var grid = document.getElementById('avatar-grid');
-  if (!grid) return;
+  if (!grid) {
+    console.log('[PronoSPIc] Avatar grid not found, retrying...');
+    setTimeout(generateNewAvatars, 100);
+    return;
+  }
   
   var html = '';
   avatars.forEach(function(avatar, index) {
@@ -951,15 +961,22 @@ function generateNewAvatars() {
   });
   
   grid.innerHTML = html;
+  console.log('[PronoSPIc] Avatar grid updated');
 }
 
 function selectGeneratedAvatar(avatarUrl) {
+  console.log('[PronoSPIc] selectGeneratedAvatar called with:', avatarUrl);
   document.getElementById('profile-avatar-url').value = avatarUrl;
   updateAvatarPreview(avatarUrl);
   
   // Visual feedback
   showToast('Avatar sélectionné !', 'success');
 }
+
+// Make sure functions are globally accessible
+window.generateNewAvatars = generateNewAvatars;
+window.selectGeneratedAvatar = selectGeneratedAvatar;
+window.changeAvatarStyle = changeAvatarStyle;
 
 async function saveProfile() {
   var displayName = document.getElementById('profile-display-name').value.trim();
