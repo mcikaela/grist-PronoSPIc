@@ -76,12 +76,15 @@ function switchLang(lang) {
 
 var isOwner = false;
 var currentUserEmail = '';
+var currentDisplayName = null;
+var currentGender = 'neutral'; // male, female, neutral
 var teams = [];
 var matches = [];
 var predictions = [];
 var allPredictions = [];
 var bonusData = [];
 var profiles = [];
+
 var activeTab = 'matches';
 var activePhaseFilter = 'all';
 var activeGroupFilter = '';
@@ -477,7 +480,8 @@ async function loadAllData() {
           id: prd.id[l], 
           email: prd.User_Email[l], 
           displayName: prd.Display_Name[l], 
-          avatarUrl: prd.Avatar_URL[l] 
+          avatarUrl: prd.Avatar_URL[l],
+          gender: prd.Gender[l] || 'neutral'
         });
       }
     }
@@ -560,17 +564,31 @@ function updateHeaderUserInfo() {
   }
 }
 
-// Avatar generator functions
-var avatarStyles = [
-  { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar de personne stylisé' },
-  { id: 'bottts', name: 'Robot', description: 'Avatar robotique moderne' },
-  { id: 'lorelei', name: 'Personnage Animé', description: 'Style manga/anime' },
-  { id: 'notionists', name: 'Professionnel', description: 'Style professionnel minimaliste' },
-  { id: 'adventurer', name: 'Aventurier', description: 'Style aventure et exploration' },
-  { id: 'identicon', name: 'Géométrique', description: 'Formes géométriques colorées' },
-  { id: 'shapes', name: 'Formes', description: 'Formes abstraites' },
-  { id: 'pixel-art', name: 'Pixel Art', description: 'Style rétro 8-bits' }
-];
+// Avatar generator functions with gender-specific styles
+var avatarStyles = {
+  male: [
+    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar masculin stylisé' },
+    { id: 'adventurer', name: 'Aventurier', description: 'Style aventure et exploration' },
+    { id: 'bottts', name: 'Robot', description: 'Avatar robotique moderne' },
+    { id: 'identicon', name: 'Géométrique', description: 'Formes géométriques colorées' }
+  ],
+  female: [
+    { id: 'lorelei', name: 'Personnage Animé', description: 'Style manga/anime féminin' },
+    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar féminin stylisé' },
+    { id: 'notionists', name: 'Professionnel', description: 'Style professionnel minimaliste' },
+    { id: 'shapes', name: 'Formes', description: 'Formes douces et colorées' }
+  ],
+  neutral: [
+    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar neutre stylisé' },
+    { id: 'bottts', name: 'Robot', description: 'Avatar robotique moderne' },
+    { id: 'lorelei', name: 'Personnage Animé', description: 'Style manga/anime' },
+    { id: 'notionists', name: 'Professionnel', description: 'Style professionnel minimaliste' },
+    { id: 'adventurer', name: 'Aventurier', description: 'Style aventure et exploration' },
+    { id: 'identicon', name: 'Géométrique', description: 'Formes géométriques colorées' },
+    { id: 'shapes', name: 'Formes', description: 'Formes abstraites' },
+    { id: 'pixel-art', name: 'Pixel Art', description: 'Style rétro 8-bits' }
+  ]
+};
 
 var currentAvatarStyle = 'avataaars';
 var generatedAvatars = [];
@@ -586,11 +604,18 @@ function generateMultipleAvatars(style, count = 6) {
   generatedAvatars = [];
   var timestamp = Date.now();
   
+  // Get gender-specific styles if available, otherwise use neutral
+  var genderStyles = avatarStyles[currentGender] || avatarStyles.neutral;
+  
   for (var i = 0; i < count; i++) {
-    var uniqueSeed = currentUserEmail + '_' + timestamp + '_' + i + '_' + Math.random().toString(36).substring(7);
+    // Use gender-specific style or fallback to provided style
+    var avatarStyle = genderStyles[i % genderStyles.length].id;
+    
+    var uniqueSeed = currentUserEmail + '_' + currentGender + '_' + timestamp + '_' + i + '_' + Math.random().toString(36).substring(7);
     generatedAvatars.push({
-      url: generateAvatarUrl(style, uniqueSeed),
-      seed: uniqueSeed
+      url: generateAvatarUrl(avatarStyle, uniqueSeed),
+      seed: uniqueSeed,
+      style: avatarStyle
     });
   }
   return generatedAvatars;
@@ -887,6 +912,13 @@ function renderProfile() {
   var currentDisplayName = myProfile ? myProfile.displayName : '';
   var currentAvatar = myProfile ? myProfile.avatarUrl : '';
   
+  // Load gender from profile or use default
+  if (myProfile && myProfile.gender) {
+    currentGender = myProfile.gender;
+  } else {
+    currentGender = 'neutral';
+  }
+  
   var html = '<div style="max-width: 600px; margin: 0 auto;">';
   html += '<h2 style="margin-bottom: 20px; text-align: center;">' + t('profileTitle') + '</h2>';
   
@@ -910,6 +942,16 @@ function renderProfile() {
   html += 'style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
   html += '</div>';
   
+  // Gender selection
+  html += '<div style="margin-bottom: 16px;">';
+  html += '<label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151;">Genre</label>';
+  html += '<select id="profile-gender" onchange="changeGender(this.value)" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
+  html += '<option value="male"' + (currentGender === 'male' ? ' selected' : '') + '>👦 Masculin</option>';
+  html += '<option value="female"' + (currentGender === 'female' ? ' selected' : '') + '>👧 Féminin</option>';
+  html += '<option value="neutral"' + (currentGender === 'neutral' ? ' selected' : '') + '>⚪ Neutre</option>';
+  html += '</select>';
+  html += '</div>';
+  
   html += '<button class="btn-prono" onclick="saveProfile()" style="width: 100%;">' + t('profileSave') + '</button>';
   html += '</div>';
   
@@ -917,11 +959,12 @@ function renderProfile() {
   html += '<div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;">';
   html += '<h3 style="margin-bottom: 16px; text-align: center;">' + t('avatarGenerator') + '</h3>';
   
-  // Style selector
+  // Style selector (gender-specific)
   html += '<div style="margin-bottom: 16px;">';
   html += '<label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151;">' + t('avatarStyle') + '</label>';
   html += '<select id="avatar-style-select" onchange="changeAvatarStyle(this.value)" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
-  avatarStyles.forEach(function(style) {
+  var genderStyles = avatarStyles[currentGender] || avatarStyles.neutral;
+  genderStyles.forEach(function(style) {
     html += '<option value="' + style.id + '">' + style.name + ' - ' + style.description + '</option>';
   });
   html += '</select>';
@@ -967,6 +1010,24 @@ function updateAvatarPreview(url) {
   } else {
     preview.outerHTML = '<div id="avatar-preview" style="width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin: 0 auto;">👤</div>';
   }
+}
+
+function changeGender(gender) {
+  console.log('[PronoSPIc] Gender changed to:', gender);
+  currentGender = gender;
+  
+  // Update style selector with gender-specific styles
+  var styleSelect = document.getElementById('avatar-style-select');
+  if (styleSelect) {
+    var genderStyles = avatarStyles[currentGender] || avatarStyles.neutral;
+    styleSelect.innerHTML = '';
+    genderStyles.forEach(function(style) {
+      styleSelect.innerHTML += '<option value="' + style.id + '">' + style.name + ' - ' + style.description + '</option>';
+    });
+  }
+  
+  // Generate new avatars with the new gender
+  generateNewAvatars();
 }
 
 function changeAvatarStyle(style) {
@@ -1029,11 +1090,16 @@ function selectGeneratedAvatar(avatarUrl) {
 window.generateNewAvatars = generateNewAvatars;
 window.selectGeneratedAvatar = selectGeneratedAvatar;
 window.changeAvatarStyle = changeAvatarStyle;
+window.changeGender = changeGender;
 window.switchTab = switchTab;
 
 async function saveProfile() {
   var displayName = document.getElementById('profile-display-name').value.trim();
   var avatarUrl = document.getElementById('profile-avatar-url').value.trim();
+  var gender = document.getElementById('profile-gender').value;
+  
+  // Update current gender
+  currentGender = gender;
   
   try {
     var myProfile = profiles.find(function(p) { return p.email === currentUserEmail; });
@@ -1042,7 +1108,8 @@ async function saveProfile() {
       // Update existing profile
       await grist.docApi.applyUserActions([['UpdateRecord', PROFILES_TABLE, myProfile.id, {
         Display_Name: displayName,
-        Avatar_URL: avatarUrl
+        Avatar_URL: avatarUrl,
+        Gender: gender
       }]]);
       myProfile.displayName = displayName;
       myProfile.avatarUrl = avatarUrl;
@@ -1051,7 +1118,8 @@ async function saveProfile() {
       await grist.docApi.applyUserActions([['AddRecord', PROFILES_TABLE, null, {
         User_Email: currentUserEmail,
         Display_Name: displayName,
-        Avatar_URL: avatarUrl
+        Avatar_URL: avatarUrl,
+        Gender: gender
       }]]);
       profiles.push({
         email: currentUserEmail,
