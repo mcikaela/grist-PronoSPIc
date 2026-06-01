@@ -592,29 +592,30 @@ function updateHeaderUserInfo() {
   }
 }
 
-// Avatar styles per gender
-// Male: only avataaars with sex[]=male (reliable gendering)
-// Female: only lorelei (female by design, no sex param needed)
-// Neutral: mix of all styles without gender filter
-var avatarStyles = {
-  male: [
-    { id: 'avataaars', name: 'Personnage Cartoon masculin', description: 'Personnage masculin' }
-  ],
-  female: [
-    { id: 'lorelei', name: 'Personnage Animé féminin', description: 'Personnage féminin' },
-    { id: 'avataaars', name: 'Personnage Cartoon féminin', description: 'Personnage féminin' }
-  ],
-  neutral: [
-    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Style classique' },
-    { id: 'bottts', name: 'Robot', description: 'Avatar robotique' },
-    { id: 'lorelei', name: 'Personnage Animé', description: 'Style manga/anime' },
-    { id: 'notionists', name: 'Professionnel', description: 'Style minimaliste' },
-    { id: 'adventurer', name: 'Aventurier', description: 'Style aventure' },
-    { id: 'identicon', name: 'Géométrique', description: 'Formes géométriques' },
-    { id: 'shapes', name: 'Formes', description: 'Formes abstraites' },
-    { id: 'pixel-art', name: 'Pixel Art', description: 'Style rétro 8-bits' }
-  ]
-};
+// DiceBear avatar styles - no true male/female distinction exists
+// Styles come in 'character' and 'neutral' variants
+var avatarStyles = [
+  { id: 'avataaars', name: 'Avataaars', description: 'Personnage cartoon' },
+  { id: 'avataaars-neutral', name: 'Avataaars Neutre', description: 'Cartoon sans genre' },
+  { id: 'lorelei', name: 'Lorelei', description: 'Personnage illustré' },
+  { id: 'lorelei-neutral', name: 'Lorelei Neutre', description: 'Illustré sans genre' },
+  { id: 'adventurer', name: 'Adventurer', description: 'Style aventurier' },
+  { id: 'adventurer-neutral', name: 'Adventurer Neutre', description: 'Aventurier sans genre' },
+  { id: 'big-ears', name: 'Big Ears', description: 'Grandes oreilles' },
+  { id: 'big-ears-neutral', name: 'Big Ears Neutre', description: 'Sans genre' },
+  { id: 'notionists', name: 'Notionists', description: 'Style minimaliste' },
+  { id: 'notionists-neutral', name: 'Notionists Neutre', description: 'Minimaliste neutre' },
+  { id: 'pixel-art', name: 'Pixel Art', description: 'Style rétro 8-bits' },
+  { id: 'pixel-art-neutral', name: 'Pixel Art Neutre', description: 'Rétro sans genre' },
+  { id: 'bottts', name: 'Bottts', description: 'Robots' },
+  { id: 'bottts-neutral', name: 'Bottts Neutre', description: 'Robots neutres' },
+  { id: 'micah', name: 'Micah', description: 'Style illustré moderne' },
+  { id: 'open-peeps', name: 'Open Peeps', description: 'Illustrations ouvertes' },
+  { id: 'personas', name: 'Personas', description: 'Personnages diversifiés' },
+  { id: 'fun-emoji', name: 'Fun Emoji', description: 'Emojis amusants' },
+  { id: 'shapes', name: 'Shapes', description: 'Formes abstraites' },
+  { id: 'identicon', name: 'Identicon', description: 'Géométrique unique' }
+];
 
 var currentAvatarStyle = 'avataaars';
 var generatedAvatars = [];
@@ -631,27 +632,12 @@ function generateMultipleAvatars(style, count = 6) {
   generatedAvatars = [];
   var timestamp = Date.now();
   
-  // For male: use avataaars with sex[]=male (avataaars clearly gendered)
-  // For female: use lorelei (female by design) or avataaars with sex[]=female
-  // For neutral: use the selected style without sex filter
-  var effectiveStyle = style;
-  var sex = null;
-  
-  if (currentGender === 'male') {
-    effectiveStyle = 'avataaars';
-    sex = 'male';
-  } else if (currentGender === 'female') {
-    effectiveStyle = style === 'avataaars' ? 'avataaars' : 'lorelei';
-    sex = style === 'avataaars' ? 'female' : null;
-  }
-  // neutral: use selected style as-is, no sex param
-  
   for (var i = 0; i < count; i++) {
-    var uniqueSeed = currentUserEmail + '_' + currentGender + '_' + timestamp + '_' + i + '_' + Math.random().toString(36).substring(7);
+    var uniqueSeed = currentUserEmail + '_' + timestamp + '_' + i + '_' + Math.random().toString(36).substring(7);
     generatedAvatars.push({
-      url: generateAvatarUrl(effectiveStyle, uniqueSeed, sex),
+      url: generateAvatarUrl(style, uniqueSeed),
       seed: uniqueSeed,
-      style: effectiveStyle
+      style: style
     });
   }
   return generatedAvatars;
@@ -1001,15 +987,6 @@ function renderProfile() {
   html += 'style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
   html += '</div>';
   
-  // Gender selection
-  html += '<div style="margin-bottom: 16px;">';
-  html += '<label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151;">Genre</label>';
-  html += '<select id="profile-gender" onchange="changeGender(this.value)" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
-  html += '<option value="male"' + (currentGender === 'male' ? ' selected' : '') + '>👦 Masculin</option>';
-  html += '<option value="female"' + (currentGender === 'female' ? ' selected' : '') + '>👧 Féminin</option>';
-  html += '<option value="neutral"' + (currentGender === 'neutral' ? ' selected' : '') + '>⚪ Neutre</option>';
-  html += '</select>';
-  html += '</div>';
   
   html += '<button class="btn-prono" onclick="saveProfile()" style="width: 100%;">' + t('profileSave') + '</button>';
   html += '</div>';
@@ -1018,13 +995,12 @@ function renderProfile() {
   html += '<div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;">';
   html += '<h3 style="margin-bottom: 16px; text-align: center;">' + t('avatarGenerator') + '</h3>';
   
-  // Style selector (gender-specific)
+  // Style selector
   html += '<div style="margin-bottom: 16px;">';
   html += '<label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151;">' + t('avatarStyle') + '</label>';
   html += '<select id="avatar-style-select" onchange="changeAvatarStyle(this.value)" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
-  var genderStyles = avatarStyles[currentGender] || avatarStyles.neutral;
-  genderStyles.forEach(function(style) {
-    html += '<option value="' + style.id + '">' + style.name + ' - ' + style.description + '</option>';
+  avatarStyles.forEach(function(style) {
+    html += '<option value="' + style.id + '"' + (currentAvatarStyle === style.id ? ' selected' : '') + '>' + style.name + ' - ' + style.description + '</option>';
   });
   html += '</select>';
   html += '</div>';
