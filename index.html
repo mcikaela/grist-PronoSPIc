@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>PronoSPIc - Coupe du Monde 2026</title>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1e293b; min-height: 100vh; }
+
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, #7c1d4e 0%, #1e3a5f 50%, #1a472a 100%);
+      color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .app-title { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .app-title img { height: 32px; }
+    .app-subtitle { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .lang-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; }
+    .lang-btn.active { background: white; color: #1e3a5f; }
+    .dark-toggle { background: none; border: none; font-size: 20px; cursor: pointer; }
+
+    /* Tabs */
+    .tabs { display: flex; background: white; border-bottom: 2px solid #e2e8f0; padding: 0 16px; overflow-x: auto; }
+    .tab-btn { padding: 12px 18px; border: none; background: none; font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+    .tab-btn:hover { color: #1e3a5f; }
+    .tab-btn.active { color: #7c1d4e; border-bottom-color: #7c1d4e; }
+    .tab-content { display: none; padding: 20px; }
+    .tab-content.active { display: block; }
+
+    /* Filters */
+    .filters-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .filter-btn.active { background: #7c1d4e; color: white; border-color: #7c1d4e; }
+    .filter-btn:hover { border-color: #7c1d4e; }
+
+    /* Match Cards */
+    .matches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+    .match-card {
+      background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .match-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 11px; color: #94a3b8; }
+    .match-phase-badge { padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 10px; }
+    .phase-group { background: #dbeafe; color: #1e40af; }
+    .phase-r32 { background: #fef3c7; color: #d97706; }
+    .phase-qf { background: #fce7f3; color: #be185d; }
+    .phase-sf { background: #ede9fe; color: #7c3aed; }
+    .phase-final { background: #fef9c3; color: #a16207; }
+    .match-teams { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 14px; }
+    .team-block { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100px; }
+    .team-flag { width: 56px; height: 38px; border-radius: 4px; object-fit: cover; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    .team-name { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.2; }
+    .match-vs { font-size: 20px; font-weight: 800; color: #cbd5e1; }
+    .match-score { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+    .score-input {
+      width: 48px; height: 48px; text-align: center; font-size: 22px; font-weight: 800;
+      border: 2px solid #e2e8f0; border-radius: 12px; outline: none; transition: border-color 0.2s;
+    }
+    .score-input:focus { border-color: #7c1d4e; }
+    .score-sep { font-size: 24px; font-weight: 800; color: #94a3b8; }
+    .match-result { text-align: center; font-size: 12px; padding: 6px; border-radius: 8px; margin-bottom: 8px; }
+    .result-exact { background: #dcfce7; color: #16a34a; font-weight: 700; }
+    .result-good { background: #fef3c7; color: #d97706; font-weight: 700; }
+    .result-wrong { background: #fee2e2; color: #dc2626; }
+    .result-pending { background: #f1f5f9; color: #94a3b8; }
+    .match-info { text-align: center; font-size: 11px; color: #94a3b8; }
+    .btn-prono {
+      display: block; width: 100%; padding: 10px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #7c1d4e, #1e3a5f); color: white;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; margin-top: 8px;
+    }
+    .btn-prono:hover { opacity: 0.9; }
+    .btn-prono:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-prono.saved { background: #22c55e; }
+    .official-score { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 28px; font-weight: 900; color: #1e293b; margin: 8px 0; }
+
+    /* Group Tables */
+    .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .group-card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .group-title { font-size: 16px; font-weight: 800; margin-bottom: 12px; color: #7c1d4e; }
+    .group-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .group-table th { padding: 6px 4px; text-align: center; color: #94a3b8; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
+    .group-table th:first-child { text-align: left; }
+    .group-table td { padding: 8px 4px; text-align: center; border-bottom: 1px solid #f1f5f9; }
+    .group-table td:first-child { text-align: left; }
+    .group-team-cell { display: flex; align-items: center; gap: 6px; }
+    .group-flag { width: 24px; height: 16px; border-radius: 2px; object-fit: cover; }
+    .group-rank-1, .group-rank-2 { background: #f0fdf4; }
+    .group-rank-3 { background: #fffbeb; }
+
+    /* Leaderboard */
+    .leaderboard { max-width: 600px; margin: 0 auto; }
+    .podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-bottom: 24px; }
+    .podium-item { text-align: center; padding: 16px 12px; border-radius: 16px; }
+    .podium-1 { background: linear-gradient(180deg, #fef9c3, #fef3c7); order: 2; min-height: 140px; }
+    .podium-2 { background: linear-gradient(180deg, #f1f5f9, #e2e8f0); order: 1; min-height: 110px; }
+    .podium-3 { background: linear-gradient(180deg, #fff7ed, #fed7aa); order: 3; min-height: 90px; }
+    .podium-rank { font-size: 28px; }
+    .podium-name { font-size: 13px; font-weight: 700; margin-top: 4px; }
+    .podium-points { font-size: 18px; font-weight: 800; color: #7c1d4e; }
+    .leaderboard-table { width: 100%; border-collapse: collapse; }
+    .leaderboard-table th { padding: 8px 12px; text-align: left; color: #94a3b8; font-size: 11px; border-bottom: 1px solid #e2e8f0; }
+    .leaderboard-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    .lb-rank { font-weight: 800; color: #7c1d4e; width: 30px; }
+    .lb-points { font-weight: 800; font-size: 16px; color: #1e3a5f; }
+
+    /* My Stats */
+    .stats-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .stat-value { font-size: 28px; font-weight: 900; color: #7c1d4e; }
+    .stat-label { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+    /* Admin */
+    .admin-match { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; }
+    .admin-teams { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+    .admin-flag { width: 28px; height: 19px; border-radius: 2px; }
+    .admin-score-input { width: 40px; height: 36px; text-align: center; font-size: 16px; font-weight: 700; border: 2px solid #e2e8f0; border-radius: 8px; }
+    .admin-save-btn { padding: 8px 16px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; }
+
+    /* Bonus Section */
+    .bonus-section { max-width: 500px; margin: 0 auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .bonus-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; text-align: center; }
+
+    /* Not in Grist */
+    .not-in-grist { display: none; text-align: center; padding: 60px 20px; }
+    .not-in-grist.show { display: block; }
+    .main-app { display: block; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 10px; color: white; font-size: 13px; font-weight: 600; z-index: 9999; animation: slideUp 0.3s; }
+    .toast-success { background: #22c55e; }
+    .toast-error { background: #ef4444; }
+    .toast-info { background: #3b82f6; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Dark Mode */
+    body.dark-mode { background: #0f172a; color: #e2e8f0; }
+    body.dark-mode .tabs { background: #1e293b; border-color: #334155; }
+    body.dark-mode .tab-btn { color: #94a3b8; }
+    body.dark-mode .tab-btn.active { color: #f0abfc; border-bottom-color: #f0abfc; }
+    body.dark-mode .match-card, body.dark-mode .group-card, body.dark-mode .stat-card, body.dark-mode .bonus-section, body.dark-mode .admin-match { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+    body.dark-mode .score-input, body.dark-mode .admin-score-input { background: #0f172a; color: #e2e8f0; border-color: #475569; }
+    body.dark-mode .filter-btn { background: #1e293b; border-color: #475569; color: #94a3b8; }
+    body.dark-mode .filter-btn.active { background: #7c1d4e; color: white; }
+    body.dark-mode .group-table th, body.dark-mode .group-table td { border-color: #334155; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .matches-grid { grid-template-columns: 1fr; }
+      .groups-grid { grid-template-columns: 1fr; }
+      .tab-btn { padding: 10px 12px; font-size: 12px; }
+    }
+
+    /* Footer */
+    .app-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 4px 12px; font-size: 0.7em; color: #94a3b8; display: flex; justify-content: space-between; z-index: 1000; }
+    .app-footer a { color: #3b82f6; text-decoration: none; }
+    body.dark-mode .app-footer { background: #1e293b; border-color: #334155; }
+  </style>
+</head>
+<body>
+  <div id="not-in-grist" class="not-in-grist">
+    <h1>PronoSPIc</h1>
+    <p>Ce widget doit etre utilise dans Grist.</p>
+  </div>
+
+  <div id="main-app" class="main-app">
+    <div class="app-header">
+      <div>
+        <div class="app-title">⚽ PronoSPIc</div>
+        <div class="app-subtitle" data-i18n="subtitle">Pronostics Coupe du Monde 2026</div>
+      </div>
+      <div class="header-actions">
+        <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+        <button class="lang-btn active" id="btn-fr" onclick="switchLang('fr')">FR</button>
+        <button class="lang-btn" id="btn-en" onclick="switchLang('en')">EN</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="matches" onclick="switchTab('matches')">🏟️ <span data-i18n="tabMatches">Matchs</span></button>
+      <button class="tab-btn" data-tab="groups" onclick="switchTab('groups')">📊 <span data-i18n="tabGroups">Groupes</span></button>
+      <button class="tab-btn" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 <span data-i18n="tabLeaderboard">Classement</span></button>
+      <button class="tab-btn" data-tab="mystats" onclick="switchTab('mystats')">📈 <span data-i18n="tabMyStats">Mes Stats</span></button>
+      <button class="tab-btn" data-tab="admin" onclick="switchTab('admin')">⚙️ Admin</button>
+    </div>
+
+    <div id="tab-matches" class="tab-content active">
+      <div class="filters-bar" id="match-filters"></div>
+      <div id="bonus-bar" style="margin-bottom:16px;"></div>
+      <div class="matches-grid" id="matches-list"></div>
+    </div>
+
+    <div id="tab-groups" class="tab-content">
+      <div class="groups-grid" id="groups-list"></div>
+    </div>
+
+    <div id="tab-leaderboard" class="tab-content">
+      <div class="leaderboard" id="leaderboard-content"></div>
+    </div>
+
+    <div id="tab-mystats" class="tab-content">
+      <div id="mystats-content"></div>
+    </div>
+
+    <div id="tab-admin" class="tab-content">
+      <div id="admin-content"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <span>&copy; 2026 isaytoo</span>
+    <a href="https://gristup.fr" target="_blank">gristup.fr</a>
+  </footer>
+
+  <script src="widget.js?v=1"></script>
+</body>
+</html>
