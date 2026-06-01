@@ -177,6 +177,10 @@
         <div class="app-subtitle" data-i18n="subtitle">Pronostics Coupe du Monde 2026</div>
       </div>
       <div class="header-actions">
+        <div id="user-info" style="display: flex; align-items: center; gap: 8px; margin-right: 12px;">
+          <span id="header-user-name" style="font-size: 13px; font-weight: 600; color: white;"></span>
+          <img id="header-avatar" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: none;">
+        </div>
         <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
         <button class="lang-btn active" id="btn-fr" onclick="switchLang('fr')">FR</button>
         <button class="lang-btn" id="btn-en" onclick="switchLang('en')">EN</button>
@@ -224,6 +228,6 @@
     <a href="https://gristup.fr" target="_blank">gristup.fr</a>
   </footer>
 
-  <script src="widget.js?v=4"></script>
+  <script src="widget.js?v=5"></script>
 </body>
 </html>

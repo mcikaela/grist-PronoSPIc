@@ -482,6 +482,9 @@ async function loadAllData() {
       }
     }
   } catch (e) { profiles = []; }
+  
+  // Update header with user info
+  updateHeaderUserInfo();
 }
 
 // =============================================================================
@@ -502,6 +505,27 @@ function getAvatarUrl(email) {
   if (!email) return '';
   var profile = profiles.find(function(p) { return p.email === email; });
   return profile ? profile.avatarUrl : '';
+}
+
+function updateHeaderUserInfo() {
+  var userNameElement = document.getElementById('header-user-name');
+  var avatarElement = document.getElementById('header-avatar');
+  
+  if (!userNameElement || !avatarElement) return;
+  
+  var displayName = getDisplayName(currentUserEmail);
+  var avatarUrl = getAvatarUrl(currentUserEmail);
+  
+  // Update display name
+  userNameElement.textContent = displayName;
+  
+  // Update avatar
+  if (avatarUrl && avatarUrl.match(/^https?:\/\/.+/)) {
+    avatarElement.src = avatarUrl;
+    avatarElement.style.display = 'block';
+  } else {
+    avatarElement.style.display = 'none';
+  }
 }
 
 // Avatar generator functions
@@ -969,6 +993,7 @@ async function saveProfile() {
     showToast(t('profileSaved'), 'success');
     renderProfile(); // Refresh the profile view
     renderLeaderboard(); // Refresh leaderboard to show new name
+    updateHeaderUserInfo(); // Update header with new avatar/name
     
   } catch (e) {
     showToast('Erreur: ' + e.message, 'error');
