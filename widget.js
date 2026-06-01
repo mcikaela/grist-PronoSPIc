@@ -1131,10 +1131,6 @@ window.switchTab = switchTab;
 async function saveProfile() {
   var displayName = document.getElementById('profile-display-name').value.trim();
   var avatarUrl = document.getElementById('profile-avatar-url').value.trim();
-  var gender = document.getElementById('profile-gender').value;
-  
-  // Update current gender
-  currentGender = gender;
   
   try {
     var myProfile = profiles.find(function(p) { return p.email === currentUserEmail; });
@@ -1143,8 +1139,7 @@ async function saveProfile() {
       // Update existing profile
       await grist.docApi.applyUserActions([['UpdateRecord', PROFILES_TABLE, myProfile.id, {
         Display_Name: displayName,
-        Avatar_URL: avatarUrl,
-        Gender: gender
+        Avatar_URL: avatarUrl
       }]]);
       myProfile.displayName = displayName;
       myProfile.avatarUrl = avatarUrl;
@@ -1153,8 +1148,7 @@ async function saveProfile() {
       await grist.docApi.applyUserActions([['AddRecord', PROFILES_TABLE, null, {
         User_Email: currentUserEmail,
         Display_Name: displayName,
-        Avatar_URL: avatarUrl,
-        Gender: gender
+        Avatar_URL: avatarUrl
       }]]);
       profiles.push({
         email: currentUserEmail,
