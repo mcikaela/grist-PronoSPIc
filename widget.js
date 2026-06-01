@@ -856,7 +856,15 @@ function renderGroupsView() {
     html += '<div class="group-card">';
     html += '<div class="group-title">' + t('group') + ' ' + g + '</div>';
     html += '<table class="group-table"><thead><tr>';
-    html += '<th></th><th>' + t('played') + '</th><th>' + t('won') + '</th><th>' + t('drawn') + '</th><th>' + t('lost') + '</th><th>' + t('goalsFor') + '</th><th>' + t('goalsAgainst') + '</th><th>' + t('diff') + '</th><th>' + t('points') + '</th>';
+    var tipP = currentLang === 'fr' ? 'Joués' : 'Played';
+    var tipW = currentLang === 'fr' ? 'Victoires' : 'Won';
+    var tipN = currentLang === 'fr' ? 'Nuls' : 'Drawn';
+    var tipL = currentLang === 'fr' ? 'Défaites' : 'Lost';
+    var tipGF = currentLang === 'fr' ? 'Buts pour' : 'Goals for';
+    var tipGA = currentLang === 'fr' ? 'Buts contre' : 'Goals against';
+    var tipGD = currentLang === 'fr' ? 'Différence de buts' : 'Goal difference';
+    var tipPts = 'Points';
+    html += '<th></th><th title="' + tipP + '">' + t('played') + '</th><th title="' + tipW + '">' + t('won') + '</th><th title="' + tipN + '">' + t('drawn') + '</th><th title="' + tipL + '">' + t('lost') + '</th><th title="' + tipGF + '">' + t('goalsFor') + '</th><th title="' + tipGA + '">' + t('goalsAgainst') + '</th><th title="' + tipGD + '">' + t('diff') + '</th><th title="' + tipPts + '">' + t('points') + '</th>';
     html += '</tr></thead><tbody>';
     standings.forEach(function(s, idx) {
       var rankClass = idx < 2 ? 'group-rank-' + (idx + 1) : (idx === 2 ? 'group-rank-3' : '');
