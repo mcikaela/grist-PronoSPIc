@@ -152,10 +152,57 @@
     body.dark-mode .group-table th, body.dark-mode .group-table td { border-color: #334155; }
 
     /* Responsive */
-    @media (max-width: 600px) {
-      .matches-grid { grid-template-columns: 1fr; }
+    /* Tablet */
+    @media (max-width: 768px) {
+      .matches-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+      .groups-grid { grid-template-columns: 1fr 1fr; }
+      .stats-cards { grid-template-columns: repeat(2, 1fr); }
+      .podium-item { padding: 12px 8px; }
+      .podium-name { font-size: 11px; }
+      .admin-match { flex-wrap: wrap; gap: 8px; }
+      .admin-teams { min-width: 80px; font-size: 12px; }
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .app-header { padding: 12px 14px; }
+      .app-title { font-size: 18px; }
+      .header-actions { gap: 6px; }
+      .tabs { padding: 0 6px; gap: 0; }
+      .tab-btn { padding: 10px 8px; font-size: 11px; }
+      .tab-content { padding: 12px; }
+      .matches-grid { grid-template-columns: 1fr; gap: 12px; }
+      .match-card { padding: 12px; }
+      .team-block { width: 80px; }
+      .team-flag { width: 44px; height: 30px; }
+      .team-name { font-size: 11px; }
+      .score-input { width: 42px; height: 42px; font-size: 20px; }
+      .match-teams { gap: 8px; }
+      .filters-bar { gap: 4px; }
+      .filter-btn { padding: 5px 10px; font-size: 11px; }
       .groups-grid { grid-template-columns: 1fr; }
-      .tab-btn { padding: 10px 12px; font-size: 12px; }
+      .group-table { font-size: 11px; }
+      .group-table th, .group-table td { padding: 5px 2px; }
+      .group-flag { width: 18px; height: 12px; }
+      .stats-cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .stat-card { padding: 12px; }
+      .stat-value { font-size: 22px; }
+      .podium { gap: 6px; }
+      .podium-item { padding: 10px 6px; min-width: 80px; }
+      .podium-1 { min-height: 110px; }
+      .podium-2 { min-height: 85px; }
+      .podium-3 { min-height: 70px; }
+      .podium-points { font-size: 15px; }
+      .leaderboard-table th, .leaderboard-table td { padding: 8px 6px; font-size: 12px; }
+      .bonus-section { padding: 14px; }
+      .bonus-section > div { flex-direction: column; }
+      .admin-match { flex-direction: column; align-items: stretch; text-align: center; }
+      .admin-teams { justify-content: center; }
+      .admin-score-input { width: 48px; height: 40px; font-size: 18px; }
+      .official-score { font-size: 24px; }
+      .btn-prono { font-size: 12px; padding: 9px; }
+      .match-header { font-size: 10px; }
+      .match-info { font-size: 10px; }
     }
 
     /* Footer */
@@ -228,6 +275,6 @@
     <a href="https://gristup.fr" target="_blank">gristup.fr</a>
   </footer>
 
-  <script src="widget.js?v=24"></script>
+  <script src="widget.js?v=25"></script>
 </body>
 </html>
