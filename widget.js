@@ -1104,21 +1104,48 @@ function generateNewAvatars() {
 
 function selectGeneratedAvatar(avatarUrl) {
   console.log('[PronoSPIc] selectGeneratedAvatar called with:', avatarUrl);
-  document.getElementById('profile-avatar-url').value = avatarUrl;
+  
+  // Update input and preview
+  var avatarInput = document.getElementById('profile-avatar-url');
+  if (avatarInput) avatarInput.value = avatarUrl;
   updateAvatarPreview(avatarUrl);
   
-  // Update header with the new avatar (preview)
+  // Update header immediately
   var avatarElement = document.getElementById('header-avatar');
   if (avatarElement) {
     avatarElement.src = avatarUrl;
     avatarElement.style.display = 'block';
-    avatarElement.onerror = function() {
-      this.style.display = 'none';
-    };
+    avatarElement.onerror = function() { this.style.display = 'none'; };
   }
   
-  // Visual feedback
-  showToast('Avatar sélectionné !', 'success');
+  // Auto-save to database
+  var displayName = document.getElementById('profile-display-name') ? document.getElementById('profile-display-name').value.trim() : currentDisplayName;
+  var myProfile = profiles.find(function(p) { return p.email === currentUserEmail; });
+  
+  if (myProfile) {
+    grist.docApi.applyUserActions([['UpdateRecord', PROFILES_TABLE, myProfile.id, {
+      Display_Name: displayName,
+      Avatar_URL: avatarUrl
+    }]]).then(function() {
+      myProfile.avatarUrl = avatarUrl;
+      showToast('Avatar enregistré !', 'success');
+    }).catch(function(e) {
+      console.warn('[PronoSPIc] Auto-save avatar error:', e);
+      showToast('Avatar sélectionné (cliquez Enregistrer pour sauvegarder)', 'info');
+    });
+  } else {
+    grist.docApi.applyUserActions([['AddRecord', PROFILES_TABLE, null, {
+      User_Email: currentUserEmail,
+      Display_Name: displayName,
+      Avatar_URL: avatarUrl
+    }]]).then(function(result) {
+      profiles.push({ id: result.rowIds[0], email: currentUserEmail, displayName: displayName, avatarUrl: avatarUrl });
+      showToast('Avatar enregistré !', 'success');
+    }).catch(function(e) {
+      console.warn('[PronoSPIc] Auto-save avatar error:', e);
+      showToast('Avatar sélectionné (cliquez Enregistrer pour sauvegarder)', 'info');
+    });
+  }
 }
 
 // Make sure functions are globally accessible
