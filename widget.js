@@ -593,39 +593,41 @@ function updateHeaderUserInfo() {
 }
 
 // Avatar generator functions with gender-specific styles
+// sex[] param: male, female supported by avataaars, adventurer, lorelei, notionists, pixel-art
 var avatarStyles = {
   male: [
-    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar masculin stylisé' },
-    { id: 'adventurer', name: 'Aventurier', description: 'Style aventure et exploration' },
-    { id: 'bottts', name: 'Robot', description: 'Avatar robotique moderne' },
-    { id: 'identicon', name: 'Géométrique', description: 'Formes géométriques colorées' }
+    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Personnage masculin', sex: 'male' },
+    { id: 'adventurer', name: 'Aventurier', description: 'Aventurier masculin', sex: 'male' },
+    { id: 'lorelei', name: 'Personnage Animé', description: 'Personnage animé masculin', sex: 'male' },
+    { id: 'notionists', name: 'Professionnel', description: 'Style professionnel masculin', sex: 'male' }
   ],
   female: [
-    { id: 'lorelei', name: 'Personnage Animé', description: 'Style manga/anime féminin' },
-    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar féminin stylisé' },
-    { id: 'notionists', name: 'Professionnel', description: 'Style professionnel minimaliste' },
-    { id: 'shapes', name: 'Formes', description: 'Formes douces et colorées' }
+    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Personnage féminin', sex: 'female' },
+    { id: 'adventurer', name: 'Aventurière', description: 'Aventurière féminine', sex: 'female' },
+    { id: 'lorelei', name: 'Personnage Animé', description: 'Personnage animé féminin', sex: 'female' },
+    { id: 'notionists', name: 'Professionnel', description: 'Style professionnel féminin', sex: 'female' }
   ],
   neutral: [
-    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar neutre stylisé' },
-    { id: 'bottts', name: 'Robot', description: 'Avatar robotique moderne' },
-    { id: 'lorelei', name: 'Personnage Animé', description: 'Style manga/anime' },
-    { id: 'notionists', name: 'Professionnel', description: 'Style professionnel minimaliste' },
-    { id: 'adventurer', name: 'Aventurier', description: 'Style aventure et exploration' },
-    { id: 'identicon', name: 'Géométrique', description: 'Formes géométriques colorées' },
-    { id: 'shapes', name: 'Formes', description: 'Formes abstraites' },
-    { id: 'pixel-art', name: 'Pixel Art', description: 'Style rétro 8-bits' }
+    { id: 'avataaars', name: 'Personnage Cartoon', description: 'Avatar neutre stylisé', sex: null },
+    { id: 'bottts', name: 'Robot', description: 'Avatar robotique moderne', sex: null },
+    { id: 'lorelei', name: 'Personnage Animé', description: 'Style manga/anime', sex: null },
+    { id: 'notionists', name: 'Professionnel', description: 'Style professionnel minimaliste', sex: null },
+    { id: 'adventurer', name: 'Aventurier', description: 'Style aventure et exploration', sex: null },
+    { id: 'identicon', name: 'Géométrique', description: 'Formes géométriques colorées', sex: null },
+    { id: 'shapes', name: 'Formes', description: 'Formes abstraites', sex: null },
+    { id: 'pixel-art', name: 'Pixel Art', description: 'Style rétro 8-bits', sex: null }
   ]
 };
 
 var currentAvatarStyle = 'avataaars';
 var generatedAvatars = [];
 
-function generateAvatarUrl(style, seed) {
+function generateAvatarUrl(style, seed, sex) {
   if (!seed) seed = Math.random().toString(36).substring(7);
   var timestamp = Date.now();
   var random = Math.random().toString(36).substring(7);
-  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&t=${timestamp}&r=${random}`;
+  var sexParam = sex ? '&sex[]=' + sex : '';
+  return 'https://api.dicebear.com/7.x/' + style + '/svg?seed=' + seed + sexParam + '&t=' + timestamp + '&r=' + random;
 }
 
 function generateMultipleAvatars(style, count = 6) {
@@ -636,12 +638,13 @@ function generateMultipleAvatars(style, count = 6) {
   var genderStyles = avatarStyles[currentGender] || avatarStyles.neutral;
   
   for (var i = 0; i < count; i++) {
-    // Use gender-specific style or fallback to provided style
-    var avatarStyle = genderStyles[i % genderStyles.length].id;
+    var styleObj = genderStyles[i % genderStyles.length];
+    var avatarStyle = styleObj.id;
+    var sex = styleObj.sex || null;
     
     var uniqueSeed = currentUserEmail + '_' + currentGender + '_' + timestamp + '_' + i + '_' + Math.random().toString(36).substring(7);
     generatedAvatars.push({
-      url: generateAvatarUrl(avatarStyle, uniqueSeed),
+      url: generateAvatarUrl(avatarStyle, uniqueSeed, sex),
       seed: uniqueSeed,
       style: avatarStyle
     });
