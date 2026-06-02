@@ -83,7 +83,6 @@ function switchLang(lang) {
 var isOwner = false;
 var currentUserEmail = '';
 var currentDisplayName = null;
-var currentGender = 'neutral'; // male, female, neutral
 var teams = [];
 var matches = [];
 var predictions = [];
@@ -108,179 +107,174 @@ var PROFILES_TABLE = 'Prono_Profiles';
 // =============================================================================
 
 var TEAM_DATA = [
-  { code: 'MEX', name_fr: 'Mexique', name_en: 'Mexico', group: 'A', flag: 'mx' },
-  { code: 'KOR', name_fr: 'Corée du Sud', name_en: 'South Korea', group: 'A', flag: 'kr' },
-  { code: 'RSA', name_fr: 'Afrique du Sud', name_en: 'South Africa', group: 'A', flag: 'za' },
-  { code: 'CZE', name_fr: 'Tchéquie', name_en: 'Czechia', group: 'A', flag: 'cz' },
-  { code: 'CAN', name_fr: 'Canada', name_en: 'Canada', group: 'B', flag: 'ca' },
-  { code: 'SUI', name_fr: 'Suisse', name_en: 'Switzerland', group: 'B', flag: 'ch' },
-  { code: 'QAT', name_fr: 'Qatar', name_en: 'Qatar', group: 'B', flag: 'qa' },
-  { code: 'BIH', name_fr: 'Bosnie-Herzégovine', name_en: 'Bosnia-Herzegovina', group: 'B', flag: 'ba' },
-  { code: 'BRA', name_fr: 'Brésil', name_en: 'Brazil', group: 'C', flag: 'br' },
-  { code: 'MAR', name_fr: 'Maroc', name_en: 'Morocco', group: 'C', flag: 'ma' },
-  { code: 'HAI', name_fr: 'Haïti', name_en: 'Haiti', group: 'C', flag: 'ht' },
-  { code: 'SCO', name_fr: 'Écosse', name_en: 'Scotland', group: 'C', flag: 'gb-sct' },
-  { code: 'USA', name_fr: 'États-Unis', name_en: 'United States', group: 'D', flag: 'us' },
-  { code: 'PAR', name_fr: 'Paraguay', name_en: 'Paraguay', group: 'D', flag: 'py' },
-  { code: 'AUS', name_fr: 'Australie', name_en: 'Australia', group: 'D', flag: 'au' },
-  { code: 'TUR', name_fr: 'Turquie', name_en: 'Türkiye', group: 'D', flag: 'tr' },
-  { code: 'GER', name_fr: 'Allemagne', name_en: 'Germany', group: 'E', flag: 'de' },
-  { code: 'CUW', name_fr: 'Curaçao', name_en: 'Curaçao', group: 'E', flag: 'cw' },
-  { code: 'CIV', name_fr: "Côte d'Ivoire", name_en: 'Ivory Coast', group: 'E', flag: 'ci' },
-  { code: 'ECU', name_fr: 'Équateur', name_en: 'Ecuador', group: 'E', flag: 'ec' },
-  { code: 'NED', name_fr: 'Pays-Bas', name_en: 'Netherlands', group: 'F', flag: 'nl' },
-  { code: 'JPN', name_fr: 'Japon', name_en: 'Japan', group: 'F', flag: 'jp' },
-  { code: 'SWE', name_fr: 'Suède', name_en: 'Sweden', group: 'F', flag: 'se' },
-  { code: 'TUN', name_fr: 'Tunisie', name_en: 'Tunisia', group: 'F', flag: 'tn' },
-  { code: 'BEL', name_fr: 'Belgique', name_en: 'Belgium', group: 'G', flag: 'be' },
-  { code: 'EGY', name_fr: 'Égypte', name_en: 'Egypt', group: 'G', flag: 'eg' },
-  { code: 'IRN', name_fr: 'Iran', name_en: 'Iran', group: 'G', flag: 'ir' },
-  { code: 'NZL', name_fr: 'Nouvelle-Zélande', name_en: 'New Zealand', group: 'G', flag: 'nz' },
-  { code: 'ESP', name_fr: 'Espagne', name_en: 'Spain', group: 'H', flag: 'es' },
-  { code: 'CPV', name_fr: 'Cap-Vert', name_en: 'Cape Verde', group: 'H', flag: 'cv' },
-  { code: 'KSA', name_fr: 'Arabie Saoudite', name_en: 'Saudi Arabia', group: 'H', flag: 'sa' },
-  { code: 'URU', name_fr: 'Uruguay', name_en: 'Uruguay', group: 'H', flag: 'uy' },
-  { code: 'FRA', name_fr: 'France', name_en: 'France', group: 'I', flag: 'fr' },
-  { code: 'SEN', name_fr: 'Sénégal', name_en: 'Senegal', group: 'I', flag: 'sn' },
-  { code: 'NOR', name_fr: 'Norvège', name_en: 'Norway', group: 'I', flag: 'no' },
-  { code: 'IRQ', name_fr: 'Irak', name_en: 'Iraq', group: 'I', flag: 'iq' },
-  { code: 'ARG', name_fr: 'Argentine', name_en: 'Argentina', group: 'J', flag: 'ar' },
-  { code: 'ALG', name_fr: 'Algérie', name_en: 'Algeria', group: 'J', flag: 'dz' },
-  { code: 'AUT', name_fr: 'Autriche', name_en: 'Austria', group: 'J', flag: 'at' },
-  { code: 'JOR', name_fr: 'Jordanie', name_en: 'Jordan', group: 'J', flag: 'jo' },
-  { code: 'POR', name_fr: 'Portugal', name_en: 'Portugal', group: 'K', flag: 'pt' },
-  { code: 'COD', name_fr: 'RD Congo', name_en: 'DR Congo', group: 'K', flag: 'cd' },
-  { code: 'UZB', name_fr: 'Ouzbékistan', name_en: 'Uzbekistan', group: 'K', flag: 'uz' },
-  { code: 'COL', name_fr: 'Colombie', name_en: 'Colombia', group: 'K', flag: 'co' },
-  { code: 'ENG', name_fr: 'Angleterre', name_en: 'England', group: 'L', flag: 'gb-eng' },
-  { code: 'CRO', name_fr: 'Croatie', name_en: 'Croatia', group: 'L', flag: 'hr' },
-  { code: 'GHA', name_fr: 'Ghana', name_en: 'Ghana', group: 'L', flag: 'gh' },
-  { code: 'PAN', name_fr: 'Panama', name_en: 'Panama', group: 'L', flag: 'pa' }
+  { code: 'MEX', name_fr: 'Mexique',            name_en: 'Mexico',            group: 'A', flag: 'mx' },
+  { code: 'KOR', name_fr: 'Corée du Sud',        name_en: 'South Korea',       group: 'A', flag: 'kr' },
+  { code: 'RSA', name_fr: 'Afrique du Sud',      name_en: 'South Africa',      group: 'A', flag: 'za' },
+  { code: 'CZE', name_fr: 'Tchéquie',            name_en: 'Czechia',           group: 'A', flag: 'cz' },
+  { code: 'CAN', name_fr: 'Canada',              name_en: 'Canada',            group: 'B', flag: 'ca' },
+  { code: 'SUI', name_fr: 'Suisse',              name_en: 'Switzerland',       group: 'B', flag: 'ch' },
+  { code: 'QAT', name_fr: 'Qatar',               name_en: 'Qatar',             group: 'B', flag: 'qa' },
+  { code: 'BIH', name_fr: 'Bosnie-Herzégovine',  name_en: 'Bosnia-Herzegovina',group: 'B', flag: 'ba' },
+  { code: 'BRA', name_fr: 'Brésil',              name_en: 'Brazil',            group: 'C', flag: 'br' },
+  { code: 'MAR', name_fr: 'Maroc',               name_en: 'Morocco',           group: 'C', flag: 'ma' },
+  { code: 'HAI', name_fr: 'Haïti',               name_en: 'Haiti',             group: 'C', flag: 'ht' },
+  { code: 'SCO', name_fr: 'Écosse',              name_en: 'Scotland',          group: 'C', flag: 'gb-sct' },
+  { code: 'USA', name_fr: 'États-Unis',          name_en: 'United States',     group: 'D', flag: 'us' },
+  { code: 'PAR', name_fr: 'Paraguay',            name_en: 'Paraguay',          group: 'D', flag: 'py' },
+  { code: 'AUS', name_fr: 'Australie',           name_en: 'Australia',         group: 'D', flag: 'au' },
+  { code: 'TUR', name_fr: 'Turquie',             name_en: 'Türkiye',           group: 'D', flag: 'tr' },
+  { code: 'GER', name_fr: 'Allemagne',           name_en: 'Germany',           group: 'E', flag: 'de' },
+  { code: 'CUW', name_fr: 'Curaçao',             name_en: 'Curaçao',           group: 'E', flag: 'cw' },
+  { code: 'CIV', name_fr: "Côte d'Ivoire",       name_en: 'Ivory Coast',       group: 'E', flag: 'ci' },
+  { code: 'ECU', name_fr: 'Équateur',            name_en: 'Ecuador',           group: 'E', flag: 'ec' },
+  { code: 'NED', name_fr: 'Pays-Bas',            name_en: 'Netherlands',       group: 'F', flag: 'nl' },
+  { code: 'JPN', name_fr: 'Japon',               name_en: 'Japan',             group: 'F', flag: 'jp' },
+  { code: 'SWE', name_fr: 'Suède',               name_en: 'Sweden',            group: 'F', flag: 'se' },
+  { code: 'TUN', name_fr: 'Tunisie',             name_en: 'Tunisia',           group: 'F', flag: 'tn' },
+  { code: 'BEL', name_fr: 'Belgique',            name_en: 'Belgium',           group: 'G', flag: 'be' },
+  { code: 'EGY', name_fr: 'Égypte',              name_en: 'Egypt',             group: 'G', flag: 'eg' },
+  { code: 'IRN', name_fr: 'Iran',                name_en: 'Iran',              group: 'G', flag: 'ir' },
+  { code: 'NZL', name_fr: 'Nouvelle-Zélande',    name_en: 'New Zealand',       group: 'G', flag: 'nz' },
+  { code: 'ESP', name_fr: 'Espagne',             name_en: 'Spain',             group: 'H', flag: 'es' },
+  { code: 'CPV', name_fr: 'Cap-Vert',            name_en: 'Cape Verde',        group: 'H', flag: 'cv' },
+  { code: 'KSA', name_fr: 'Arabie Saoudite',     name_en: 'Saudi Arabia',      group: 'H', flag: 'sa' },
+  { code: 'URU', name_fr: 'Uruguay',             name_en: 'Uruguay',           group: 'H', flag: 'uy' },
+  { code: 'FRA', name_fr: 'France',              name_en: 'France',            group: 'I', flag: 'fr' },
+  { code: 'SEN', name_fr: 'Sénégal',             name_en: 'Senegal',           group: 'I', flag: 'sn' },
+  { code: 'NOR', name_fr: 'Norvège',             name_en: 'Norway',            group: 'I', flag: 'no' },
+  { code: 'IRQ', name_fr: 'Irak',                name_en: 'Iraq',              group: 'I', flag: 'iq' },
+  { code: 'ARG', name_fr: 'Argentine',           name_en: 'Argentina',         group: 'J', flag: 'ar' },
+  { code: 'ALG', name_fr: 'Algérie',             name_en: 'Algeria',           group: 'J', flag: 'dz' },
+  { code: 'AUT', name_fr: 'Autriche',            name_en: 'Austria',           group: 'J', flag: 'at' },
+  { code: 'JOR', name_fr: 'Jordanie',            name_en: 'Jordan',            group: 'J', flag: 'jo' },
+  { code: 'POR', name_fr: 'Portugal',            name_en: 'Portugal',          group: 'K', flag: 'pt' },
+  { code: 'COD', name_fr: 'RD Congo',            name_en: 'DR Congo',          group: 'K', flag: 'cd' },
+  { code: 'UZB', name_fr: 'Ouzbékistan',         name_en: 'Uzbekistan',        group: 'K', flag: 'uz' },
+  { code: 'COL', name_fr: 'Colombie',            name_en: 'Colombia',          group: 'K', flag: 'co' },
+  { code: 'ENG', name_fr: 'Angleterre',          name_en: 'England',           group: 'L', flag: 'gb-eng' },
+  { code: 'CRO', name_fr: 'Croatie',             name_en: 'Croatia',           group: 'L', flag: 'hr' },
+  { code: 'GHA', name_fr: 'Ghana',               name_en: 'Ghana',             group: 'L', flag: 'gh' },
+  { code: 'PAN', name_fr: 'Panama',              name_en: 'Panama',            group: 'L', flag: 'pa' }
 ];
 
 // =============================================================================
-// DATA: GROUP STAGE MATCHES (48 matches)
+// DATA: MATCHES (72 groupes + 24 knockout = 96 matchs)
 // =============================================================================
 
 var MATCH_DATA = [
   // Group A
-  { num: 1, phase: 'group', group: 'A', t1: 'MEX', t2: 'KOR', date: '2026-06-11', time: '18:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
-  { num: 2, phase: 'group', group: 'A', t1: 'RSA', t2: 'CZE', date: '2026-06-12', time: '15:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
-  { num: 3, phase: 'group', group: 'A', t1: 'MEX', t2: 'CZE', date: '2026-06-17', time: '18:00', stadium: 'Estadio BBVA', city: 'Monterrey' },
-  { num: 4, phase: 'group', group: 'A', t1: 'KOR', t2: 'RSA', date: '2026-06-17', time: '15:00', stadium: 'Estadio Akron', city: 'Guadalajara' },
-  { num: 5, phase: 'group', group: 'A', t1: 'CZE', t2: 'KOR', date: '2026-06-22', time: '18:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
-  { num: 6, phase: 'group', group: 'A', t1: 'RSA', t2: 'MEX', date: '2026-06-22', time: '18:00', stadium: 'Estadio BBVA', city: 'Monterrey' },
+  { num:  1, phase: 'group', group: 'A', t1: 'MEX', t2: 'RSA', date: '2026-06-11', time: '18:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
+  { num:  2, phase: 'group', group: 'A', t1: 'KOR', t2: 'CZE', date: '2026-06-11', time: '21:00', stadium: 'Estadio Akron', city: 'Guadalajara' },
+  { num:  3, phase: 'group', group: 'A', t1: 'RSA', t2: 'CZE', date: '2026-06-16', time: '18:00', stadium: 'Estadio Akron', city: 'Guadalajara' },
+  { num:  4, phase: 'group', group: 'A', t1: 'MEX', t2: 'KOR', date: '2026-06-17', time: '21:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
+  { num:  5, phase: 'group', group: 'A', t1: 'CZE', t2: 'MEX', date: '2026-06-22', time: '18:00', stadium: 'Estadio BBVA', city: 'Monterrey' },
+  { num:  6, phase: 'group', group: 'A', t1: 'RSA', t2: 'KOR', date: '2026-06-22', time: '18:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
   // Group B
-  { num: 7, phase: 'group', group: 'B', t1: 'CAN', t2: 'BIH', date: '2026-06-12', time: '17:00', stadium: 'BMO Field', city: 'Toronto' },
-  { num: 8, phase: 'group', group: 'B', t1: 'SUI', t2: 'QAT', date: '2026-06-12', time: '14:00', stadium: 'BC Place', city: 'Vancouver' },
-  { num: 9, phase: 'group', group: 'B', t1: 'CAN', t2: 'QAT', date: '2026-06-18', time: '17:00', stadium: 'BMO Field', city: 'Toronto' },
-  { num: 10, phase: 'group', group: 'B', t1: 'BIH', t2: 'SUI', date: '2026-06-18', time: '14:00', stadium: 'BC Place', city: 'Vancouver' },
-  { num: 11, phase: 'group', group: 'B', t1: 'QAT', t2: 'BIH', date: '2026-06-23', time: '17:00', stadium: 'BMO Field', city: 'Toronto' },
-  { num: 12, phase: 'group', group: 'B', t1: 'SUI', t2: 'CAN', date: '2026-06-23', time: '17:00', stadium: 'BC Place', city: 'Vancouver' },
+  { num:  7, phase: 'group', group: 'B', t1: 'CAN', t2: 'BIH', date: '2026-06-12', time: '18:00', stadium: 'BMO Field', city: 'Toronto' },
+  { num:  8, phase: 'group', group: 'B', t1: 'QAT', t2: 'SUI', date: '2026-06-13', time: '15:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
+  { num:  9, phase: 'group', group: 'B', t1: 'BIH', t2: 'QAT', date: '2026-06-18', time: '18:00', stadium: 'BMO Field', city: 'Toronto' },
+  { num: 10, phase: 'group', group: 'B', t1: 'SUI', t2: 'CAN', date: '2026-06-18', time: '15:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
+  { num: 11, phase: 'group', group: 'B', t1: 'QAT', t2: 'CAN', date: '2026-06-23', time: '18:00', stadium: 'BMO Field', city: 'Toronto' },
+  { num: 12, phase: 'group', group: 'B', t1: 'BIH', t2: 'SUI', date: '2026-06-23', time: '18:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
   // Group C
-  { num: 13, phase: 'group', group: 'C', t1: 'BRA', t2: 'HAI', date: '2026-06-13', time: '18:00', stadium: 'Rose Bowl', city: 'Los Angeles' },
-  { num: 14, phase: 'group', group: 'C', t1: 'MAR', t2: 'SCO', date: '2026-06-13', time: '15:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
-  { num: 15, phase: 'group', group: 'C', t1: 'BRA', t2: 'SCO', date: '2026-06-19', time: '18:00', stadium: 'Rose Bowl', city: 'Los Angeles' },
-  { num: 16, phase: 'group', group: 'C', t1: 'HAI', t2: 'MAR', date: '2026-06-19', time: '15:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
-  { num: 17, phase: 'group', group: 'C', t1: 'SCO', t2: 'HAI', date: '2026-06-24', time: '18:00', stadium: 'Rose Bowl', city: 'Los Angeles' },
-  { num: 18, phase: 'group', group: 'C', t1: 'MAR', t2: 'BRA', date: '2026-06-24', time: '18:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
+  { num: 13, phase: 'group', group: 'C', t1: 'BRA', t2: 'MAR', date: '2026-06-13', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
+  { num: 14, phase: 'group', group: 'C', t1: 'HAI', t2: 'SCO', date: '2026-06-13', time: '21:00', stadium: 'Gillette Stadium', city: 'Boston' },
+  { num: 15, phase: 'group', group: 'C', t1: 'SCO', t2: 'BRA', date: '2026-06-19', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
+  { num: 16, phase: 'group', group: 'C', t1: 'MAR', t2: 'HAI', date: '2026-06-19', time: '21:00', stadium: 'Gillette Stadium', city: 'Boston' },
+  { num: 17, phase: 'group', group: 'C', t1: 'BRA', t2: 'SCO', date: '2026-06-24', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
+  { num: 18, phase: 'group', group: 'C', t1: 'MAR', t2: 'HAI', date: '2026-06-24', time: '18:00', stadium: 'Gillette Stadium', city: 'Boston' },
   // Group D
   { num: 19, phase: 'group', group: 'D', t1: 'USA', t2: 'PAR', date: '2026-06-12', time: '21:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
   { num: 20, phase: 'group', group: 'D', t1: 'AUS', t2: 'TUR', date: '2026-06-13', time: '12:00', stadium: 'Lumen Field', city: 'Seattle' },
-  { num: 21, phase: 'group', group: 'D', t1: 'USA', t2: 'TUR', date: '2026-06-18', time: '21:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
-  { num: 22, phase: 'group', group: 'D', t1: 'PAR', t2: 'AUS', date: '2026-06-18', time: '12:00', stadium: 'Lumen Field', city: 'Seattle' },
-  { num: 23, phase: 'group', group: 'D', t1: 'TUR', t2: 'PAR', date: '2026-06-23', time: '21:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
-  { num: 24, phase: 'group', group: 'D', t1: 'AUS', t2: 'USA', date: '2026-06-23', time: '21:00', stadium: 'Lumen Field', city: 'Seattle' },
+  { num: 21, phase: 'group', group: 'D', t1: 'USA', t2: 'AUS', date: '2026-06-19', time: '21:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
+  { num: 22, phase: 'group', group: 'D', t1: 'PAR', t2: 'TUR', date: '2026-06-19', time: '12:00', stadium: 'Lumen Field', city: 'Seattle' },
+  { num: 23, phase: 'group', group: 'D', t1: 'AUS', t2: 'PAR', date: '2026-06-24', time: '21:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
+  { num: 24, phase: 'group', group: 'D', t1: 'TUR', t2: 'USA', date: '2026-06-24', time: '21:00', stadium: 'Lumen Field', city: 'Seattle' },
   // Group E
-  { num: 25, phase: 'group', group: 'E', t1: 'GER', t2: 'CUW', date: '2026-06-13', time: '21:00', stadium: 'Lincoln Financial Field', city: 'Philadelphia' },
-  { num: 26, phase: 'group', group: 'E', t1: 'CIV', t2: 'ECU', date: '2026-06-14', time: '15:00', stadium: 'Gillette Stadium', city: 'Boston' },
-  { num: 27, phase: 'group', group: 'E', t1: 'GER', t2: 'ECU', date: '2026-06-19', time: '21:00', stadium: 'Lincoln Financial Field', city: 'Philadelphia' },
-  { num: 28, phase: 'group', group: 'E', t1: 'CUW', t2: 'CIV', date: '2026-06-19', time: '15:00', stadium: 'Gillette Stadium', city: 'Boston' },
-  { num: 29, phase: 'group', group: 'E', t1: 'ECU', t2: 'CUW', date: '2026-06-24', time: '21:00', stadium: 'Lincoln Financial Field', city: 'Philadelphia' },
-  { num: 30, phase: 'group', group: 'E', t1: 'CIV', t2: 'GER', date: '2026-06-24', time: '21:00', stadium: 'Gillette Stadium', city: 'Boston' },
+  { num: 25, phase: 'group', group: 'E', t1: 'GER', t2: 'CUW', date: '2026-06-14', time: '21:00', stadium: 'NRG Stadium', city: 'Houston' },
+  { num: 26, phase: 'group', group: 'E', t1: 'CIV', t2: 'ECU', date: '2026-06-14', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 27, phase: 'group', group: 'E', t1: 'GER', t2: 'ECU', date: '2026-06-20', time: '21:00', stadium: 'NRG Stadium', city: 'Houston' },
+  { num: 28, phase: 'group', group: 'E', t1: 'CUW', t2: 'CIV', date: '2026-06-20', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 29, phase: 'group', group: 'E', t1: 'ECU', t2: 'GER', date: '2026-06-25', time: '21:00', stadium: 'NRG Stadium', city: 'Houston' },
+  { num: 30, phase: 'group', group: 'E', t1: 'CIV', t2: 'CUW', date: '2026-06-25', time: '21:00', stadium: 'AT&T Stadium', city: 'Dallas' },
   // Group F
-  { num: 31, phase: 'group', group: 'F', t1: 'NED', t2: 'TUN', date: '2026-06-14', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
-  { num: 32, phase: 'group', group: 'F', t1: 'JPN', t2: 'SWE', date: '2026-06-14', time: '12:00', stadium: 'AT&T Stadium', city: 'Dallas' },
-  { num: 33, phase: 'group', group: 'F', t1: 'NED', t2: 'SWE', date: '2026-06-20', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
-  { num: 34, phase: 'group', group: 'F', t1: 'TUN', t2: 'JPN', date: '2026-06-20', time: '12:00', stadium: 'AT&T Stadium', city: 'Dallas' },
-  { num: 35, phase: 'group', group: 'F', t1: 'SWE', t2: 'TUN', date: '2026-06-25', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
-  { num: 36, phase: 'group', group: 'F', t1: 'JPN', t2: 'NED', date: '2026-06-25', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 31, phase: 'group', group: 'F', t1: 'NED', t2: 'JPN', date: '2026-06-14', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 32, phase: 'group', group: 'F', t1: 'SWE', t2: 'TUN', date: '2026-06-14', time: '15:00', stadium: 'Estadio BBVA', city: 'Monterrey' },
+  { num: 33, phase: 'group', group: 'F', t1: 'JPN', t2: 'SWE', date: '2026-06-20', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 34, phase: 'group', group: 'F', t1: 'TUN', t2: 'NED', date: '2026-06-20', time: '15:00', stadium: 'Estadio BBVA', city: 'Monterrey' },
+  { num: 35, phase: 'group', group: 'F', t1: 'NED', t2: 'TUN', date: '2026-06-25', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 36, phase: 'group', group: 'F', t1: 'SWE', t2: 'JPN', date: '2026-06-25', time: '18:00', stadium: 'Estadio BBVA', city: 'Monterrey' },
   // Group G
-  { num: 37, phase: 'group', group: 'G', t1: 'BEL', t2: 'NZL', date: '2026-06-14', time: '21:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
-  { num: 38, phase: 'group', group: 'G', t1: 'EGY', t2: 'IRN', date: '2026-06-15', time: '15:00', stadium: 'NRG Stadium', city: 'Houston' },
-  { num: 39, phase: 'group', group: 'G', t1: 'BEL', t2: 'IRN', date: '2026-06-20', time: '21:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
-  { num: 40, phase: 'group', group: 'G', t1: 'NZL', t2: 'EGY', date: '2026-06-20', time: '15:00', stadium: 'NRG Stadium', city: 'Houston' },
-  { num: 41, phase: 'group', group: 'G', t1: 'IRN', t2: 'NZL', date: '2026-06-25', time: '21:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
-  { num: 42, phase: 'group', group: 'G', t1: 'EGY', t2: 'BEL', date: '2026-06-25', time: '21:00', stadium: 'NRG Stadium', city: 'Houston' },
+  { num: 37, phase: 'group', group: 'G', t1: 'BEL', t2: 'EGY', date: '2026-06-15', time: '21:00', stadium: 'Lumen Field', city: 'Seattle' },
+  { num: 38, phase: 'group', group: 'G', t1: 'IRN', t2: 'NZL', date: '2026-06-15', time: '18:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
+  { num: 39, phase: 'group', group: 'G', t1: 'EGY', t2: 'IRN', date: '2026-06-21', time: '21:00', stadium: 'Lumen Field', city: 'Seattle' },
+  { num: 40, phase: 'group', group: 'G', t1: 'NZL', t2: 'BEL', date: '2026-06-21', time: '18:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
+  { num: 41, phase: 'group', group: 'G', t1: 'BEL', t2: 'NZL', date: '2026-06-26', time: '21:00', stadium: 'Lumen Field', city: 'Seattle' },
+  { num: 42, phase: 'group', group: 'G', t1: 'EGY', t2: 'IRN', date: '2026-06-26', time: '21:00', stadium: 'SoFi Stadium', city: 'Los Angeles' },
   // Group H
-  { num: 43, phase: 'group', group: 'H', t1: 'ESP', t2: 'CPV', date: '2026-06-15', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
-  { num: 44, phase: 'group', group: 'H', t1: 'KSA', t2: 'URU', date: '2026-06-15', time: '12:00', stadium: 'GEODIS Park', city: 'Nashville' },
-  { num: 45, phase: 'group', group: 'H', t1: 'ESP', t2: 'URU', date: '2026-06-21', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
-  { num: 46, phase: 'group', group: 'H', t1: 'CPV', t2: 'KSA', date: '2026-06-21', time: '12:00', stadium: 'GEODIS Park', city: 'Nashville' },
-  { num: 47, phase: 'group', group: 'H', t1: 'URU', t2: 'CPV', date: '2026-06-26', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
-  { num: 48, phase: 'group', group: 'H', t1: 'KSA', t2: 'ESP', date: '2026-06-26', time: '18:00', stadium: 'GEODIS Park', city: 'Nashville' },
+  { num: 43, phase: 'group', group: 'H', t1: 'ESP', t2: 'CPV', date: '2026-06-15', time: '18:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
+  { num: 44, phase: 'group', group: 'H', t1: 'KSA', t2: 'URU', date: '2026-06-15', time: '15:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
+  { num: 45, phase: 'group', group: 'H', t1: 'CPV', t2: 'KSA', date: '2026-06-21', time: '18:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
+  { num: 46, phase: 'group', group: 'H', t1: 'URU', t2: 'ESP', date: '2026-06-21', time: '15:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
+  { num: 47, phase: 'group', group: 'H', t1: 'ESP', t2: 'URU', date: '2026-06-26', time: '18:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
+  { num: 48, phase: 'group', group: 'H', t1: 'CPV', t2: 'KSA', date: '2026-06-26', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
   // Group I
-  { num: 49, phase: 'group', group: 'I', t1: 'FRA', t2: 'IRQ', date: '2026-06-15', time: '21:00', stadium: 'Arrowhead Stadium', city: 'Kansas City' },
-  { num: 50, phase: 'group', group: 'I', t1: 'SEN', t2: 'NOR', date: '2026-06-16', time: '15:00', stadium: 'Camping World Stadium', city: 'Orlando' },
-  { num: 51, phase: 'group', group: 'I', t1: 'FRA', t2: 'NOR', date: '2026-06-21', time: '21:00', stadium: 'Arrowhead Stadium', city: 'Kansas City' },
-  { num: 52, phase: 'group', group: 'I', t1: 'IRQ', t2: 'SEN', date: '2026-06-21', time: '15:00', stadium: 'Camping World Stadium', city: 'Orlando' },
-  { num: 53, phase: 'group', group: 'I', t1: 'NOR', t2: 'IRQ', date: '2026-06-26', time: '21:00', stadium: 'Arrowhead Stadium', city: 'Kansas City' },
-  { num: 54, phase: 'group', group: 'I', t1: 'SEN', t2: 'FRA', date: '2026-06-26', time: '21:00', stadium: 'Camping World Stadium', city: 'Orlando' },
+  { num: 49, phase: 'group', group: 'I', t1: 'FRA', t2: 'SEN', date: '2026-06-16', time: '21:00', stadium: 'MetLife Stadium', city: 'New York' },
+  { num: 50, phase: 'group', group: 'I', t1: 'IRQ', t2: 'NOR', date: '2026-06-16', time: '18:00', stadium: 'Gillette Stadium', city: 'Boston' },
+  { num: 51, phase: 'group', group: 'I', t1: 'NOR', t2: 'FRA', date: '2026-06-22', time: '21:00', stadium: 'MetLife Stadium', city: 'New York' },
+  { num: 52, phase: 'group', group: 'I', t1: 'SEN', t2: 'IRQ', date: '2026-06-22', time: '18:00', stadium: 'Gillette Stadium', city: 'Boston' },
+  { num: 53, phase: 'group', group: 'I', t1: 'FRA', t2: 'IRQ', date: '2026-06-27', time: '21:00', stadium: 'MetLife Stadium', city: 'New York' },
+  { num: 54, phase: 'group', group: 'I', t1: 'SEN', t2: 'NOR', date: '2026-06-27', time: '21:00', stadium: 'Gillette Stadium', city: 'Boston' },
   // Group J
-  { num: 55, phase: 'group', group: 'J', t1: 'ARG', t2: 'JOR', date: '2026-06-16', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
-  { num: 56, phase: 'group', group: 'J', t1: 'ALG', t2: 'AUT', date: '2026-06-16', time: '12:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
-  { num: 57, phase: 'group', group: 'J', t1: 'ARG', t2: 'AUT', date: '2026-06-22', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
-  { num: 58, phase: 'group', group: 'J', t1: 'JOR', t2: 'ALG', date: '2026-06-22', time: '12:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
-  { num: 59, phase: 'group', group: 'J', t1: 'AUT', t2: 'JOR', date: '2026-06-27', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
-  { num: 60, phase: 'group', group: 'J', t1: 'ALG', t2: 'ARG', date: '2026-06-27', time: '18:00', stadium: 'Mercedes-Benz Stadium', city: 'Atlanta' },
+  { num: 55, phase: 'group', group: 'J', t1: 'ARG', t2: 'ALG', date: '2026-06-16', time: '21:00', stadium: 'Arrowhead Stadium', city: 'Kansas City' },
+  { num: 56, phase: 'group', group: 'J', t1: 'AUT', t2: 'JOR', date: '2026-06-16', time: '18:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
+  { num: 57, phase: 'group', group: 'J', t1: 'ALG', t2: 'AUT', date: '2026-06-22', time: '21:00', stadium: 'Arrowhead Stadium', city: 'Kansas City' },
+  { num: 58, phase: 'group', group: 'J', t1: 'JOR', t2: 'ARG', date: '2026-06-22', time: '18:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
+  { num: 59, phase: 'group', group: 'J', t1: 'ARG', t2: 'JOR', date: '2026-06-27', time: '21:00', stadium: 'Arrowhead Stadium', city: 'Kansas City' },
+  { num: 60, phase: 'group', group: 'J', t1: 'ALG', t2: 'AUT', date: '2026-06-27', time: '21:00', stadium: 'Levi\'s Stadium', city: 'San Francisco' },
   // Group K
-  { num: 61, phase: 'group', group: 'K', t1: 'POR', t2: 'UZB', date: '2026-06-16', time: '21:00', stadium: 'Lincoln Financial Field', city: 'Philadelphia' },
-  { num: 62, phase: 'group', group: 'K', t1: 'COD', t2: 'COL', date: '2026-06-17', time: '15:00', stadium: 'Gillette Stadium', city: 'Boston' },
-  { num: 63, phase: 'group', group: 'K', t1: 'POR', t2: 'COL', date: '2026-06-22', time: '21:00', stadium: 'Lincoln Financial Field', city: 'Philadelphia' },
-  { num: 64, phase: 'group', group: 'K', t1: 'UZB', t2: 'COD', date: '2026-06-22', time: '15:00', stadium: 'Gillette Stadium', city: 'Boston' },
-  { num: 65, phase: 'group', group: 'K', t1: 'COL', t2: 'UZB', date: '2026-06-27', time: '21:00', stadium: 'Lincoln Financial Field', city: 'Philadelphia' },
-  { num: 66, phase: 'group', group: 'K', t1: 'COD', t2: 'POR', date: '2026-06-27', time: '21:00', stadium: 'Gillette Stadium', city: 'Boston' },
+  { num: 61, phase: 'group', group: 'K', t1: 'POR', t2: 'COD', date: '2026-06-17', time: '21:00', stadium: 'NRG Stadium', city: 'Houston' },
+  { num: 62, phase: 'group', group: 'K', t1: 'UZB', t2: 'COL', date: '2026-06-17', time: '18:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
+  { num: 63, phase: 'group', group: 'K', t1: 'COD', t2: 'UZB', date: '2026-06-23', time: '21:00', stadium: 'NRG Stadium', city: 'Houston' },
+  { num: 64, phase: 'group', group: 'K', t1: 'COL', t2: 'POR', date: '2026-06-23', time: '18:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
+  { num: 65, phase: 'group', group: 'K', t1: 'POR', t2: 'UZB', date: '2026-06-28', time: '21:00', stadium: 'NRG Stadium', city: 'Houston' },
+  { num: 66, phase: 'group', group: 'K', t1: 'COL', t2: 'COD', date: '2026-06-28', time: '21:00', stadium: 'Estadio Azteca', city: 'Mexico City' },
   // Group L
-  { num: 67, phase: 'group', group: 'L', t1: 'ENG', t2: 'PAN', date: '2026-06-17', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
-  { num: 68, phase: 'group', group: 'L', t1: 'CRO', t2: 'GHA', date: '2026-06-17', time: '12:00', stadium: 'AT&T Stadium', city: 'Dallas' },
-  { num: 69, phase: 'group', group: 'L', t1: 'ENG', t2: 'GHA', date: '2026-06-23', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
-  { num: 70, phase: 'group', group: 'L', t1: 'PAN', t2: 'CRO', date: '2026-06-23', time: '12:00', stadium: 'AT&T Stadium', city: 'Dallas' },
-  { num: 71, phase: 'group', group: 'L', t1: 'GHA', t2: 'PAN', date: '2026-06-27', time: '18:00', stadium: 'MetLife Stadium', city: 'New York' },
-  { num: 72, phase: 'group', group: 'L', t1: 'CRO', t2: 'ENG', date: '2026-06-27', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
-  // Knockout — Round of 32 (TBD teams)
-  { num: 73, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-06-28', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 74, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-06-28', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 75, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-06-29', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 76, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-06-29', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 77, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-06-30', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 78, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-06-30', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 79, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-01', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 80, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-01', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 81, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-02', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 82, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-02', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 83, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-03', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 84, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-03', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 85, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-04', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 86, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-04', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 87, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-05', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 88, phase: 'r32', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-05', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 67, phase: 'group', group: 'L', t1: 'ENG', t2: 'CRO', date: '2026-06-17', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 68, phase: 'group', group: 'L', t1: 'GHA', t2: 'PAN', date: '2026-06-17', time: '15:00', stadium: 'BMO Field', city: 'Toronto' },
+  { num: 69, phase: 'group', group: 'L', t1: 'CRO', t2: 'GHA', date: '2026-06-23', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 70, phase: 'group', group: 'L', t1: 'PAN', t2: 'ENG', date: '2026-06-23', time: '15:00', stadium: 'BMO Field', city: 'Toronto' },
+  { num: 71, phase: 'group', group: 'L', t1: 'ENG', t2: 'PAN', date: '2026-06-28', time: '18:00', stadium: 'AT&T Stadium', city: 'Dallas' },
+  { num: 72, phase: 'group', group: 'L', t1: 'GHA', t2: 'CRO', date: '2026-06-28', time: '18:00', stadium: 'BMO Field', city: 'Toronto' },
+  // Knockout — Round of 32 (16 matchs)
+  { num: 73, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-01', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 74, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-01', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 75, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-02', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 76, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-02', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 77, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-03', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 78, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-03', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 79, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-04', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 80, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-04', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 81, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-05', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 82, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-05', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 83, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-06', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 84, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-06', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 85, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-07', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 86, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-07', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 87, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-08', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 88, phase: 'r32', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-08', time: '21:00', stadium: 'TBD', city: 'TBD' },
   // Quarter-finals
-  { num: 89, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-08', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 90, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-08', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 91, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-09', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 92, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-09', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 93, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-10', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 94, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-10', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 95, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-11', time: '18:00', stadium: 'TBD', city: 'TBD' },
-  { num: 96, phase: 'qf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-11', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 89, phase: 'qf', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-11', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 90, phase: 'qf', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-11', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 91, phase: 'qf', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-12', time: '18:00', stadium: 'TBD', city: 'TBD' },
+  { num: 92, phase: 'qf', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-12', time: '21:00', stadium: 'TBD', city: 'TBD' },
   // Semi-finals
-  { num: 97, phase: 'sf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-14', time: '21:00', stadium: 'TBD', city: 'TBD' },
-  { num: 98, phase: 'sf', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-15', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 93, phase: 'sf', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-14', time: '21:00', stadium: 'TBD', city: 'TBD' },
+  { num: 94, phase: 'sf', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-15', time: '21:00', stadium: 'TBD', city: 'TBD' },
   // 3rd place
-  { num: 99, phase: '3rd', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-18', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
+  { num: 95, phase: '3rd', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-18', time: '18:00', stadium: 'Hard Rock Stadium', city: 'Miami' },
   // Final
-  { num: 100, phase: 'final', group: '', t1: 'TBD', t2: 'TBD', date: '2026-07-19', time: '16:00', stadium: 'MetLife Stadium', city: 'New York' }
-];
+  { num: 96, phase: 'final', group: '',  t1: 'TBD', t2: 'TBD', date: '2026-07-19', time: '16:00', stadium: 'MetLife Stadium', city: 'New York' },];
 
 // =============================================================================
 // UTILS
@@ -402,39 +396,11 @@ async function ensureTables() {
     if (tables.indexOf(PROFILES_TABLE) === -1) {
       await grist.docApi.applyUserActions([['AddTable', PROFILES_TABLE, [
         { id: 'User_Email', type: 'Text' }, { id: 'Display_Name', type: 'Text' },
-        { id: 'Avatar_URL', type: 'Text' }, { id: 'Gender', type: 'Text' }
+        { id: 'Avatar_URL', type: 'Text' }
       ]]]);
-    } else {
-      // Ensure Gender column exists in existing PROFILES_TABLE
-      await ensureGenderColumn();
     }
   } catch (e) {
     console.warn('[PronoSPIc] ensureTables error:', e.message);
-  }
-}
-
-async function ensureGenderColumn() {
-  try {
-    console.log('[PronoSPIc] Checking for Gender column in PROFILES_TABLE');
-    var tableInfo = await grist.docApi.fetchTable(PROFILES_TABLE);
-    
-    // Check if Gender column exists by looking at the column structure
-    var hasGenderColumn = false;
-    if (tableInfo && tableInfo.columns) {
-      hasGenderColumn = Object.keys(tableInfo.columns).includes('Gender');
-    }
-    
-    if (!hasGenderColumn) {
-      console.log('[PronoSPIc] Adding Gender column to PROFILES_TABLE');
-      await grist.docApi.applyUserActions([['AddColumn', PROFILES_TABLE, 'Gender', {
-        type: 'Text'
-      }]]);
-      console.log('[PronoSPIc] Gender column added successfully');
-    } else {
-      console.log('[PronoSPIc] Gender column already exists');
-    }
-  } catch (e) {
-    console.log('[PronoSPIc] Error checking/adding Gender column:', e);
   }
 }
 
@@ -511,18 +477,16 @@ async function loadAllData() {
     profiles = [];
     if (prd && prd.id) {
       for (var l = 0; l < prd.id.length; l++) {
-        profiles.push({ 
-          id: prd.id[l], 
-          email: prd.User_Email[l], 
-          displayName: prd.Display_Name[l], 
-          avatarUrl: prd.Avatar_URL[l],
-          gender: prd.Gender[l] || 'neutral'
+        profiles.push({
+          id: prd.id[l],
+          email: prd.User_Email[l],
+          displayName: prd.Display_Name[l],
+          avatarUrl: prd.Avatar_URL[l]
         });
       }
     }
   } catch (e) { profiles = []; }
-  
-  // Update header with user info
+
   updateHeaderUserInfo();
 }
 
@@ -533,119 +497,77 @@ async function loadAllData() {
 function getDisplayName(email) {
   if (!email) return '';
   var profile = profiles.find(function(p) { return p.email === email; });
-  if (profile && profile.displayName) {
-    return profile.displayName;
-  }
-  // Fallback: use part before @
+  if (profile && profile.displayName) return profile.displayName;
   return email.split('@')[0];
 }
 
 function getAvatarUrl(email) {
   if (!email) return '';
   var profile = profiles.find(function(p) { return p.email === email; });
-  return profile ? profile.avatarUrl : '';
+  return (profile && profile.avatarUrl) ? profile.avatarUrl : '';
 }
 
 function updateHeaderUserInfo() {
-  console.log('[PronoSPIc] updateHeaderUserInfo called');
-  console.log('[PronoSPIc] currentUserEmail:', currentUserEmail);
-  console.log('[PronoSPIc] profiles loaded:', profiles.length);
-  
-  // Wait for user email and profiles to be available
-  if (!currentUserEmail || profiles.length === 0) {
-    console.log('[PronoSPIc] Waiting for user email or profiles to load...');
-    setTimeout(updateHeaderUserInfo, 300);
-    return;
-  }
-  
+  if (!currentUserEmail) { setTimeout(updateHeaderUserInfo, 300); return; }
   var userNameElement = document.getElementById('header-user-name');
   var avatarElement = document.getElementById('header-avatar');
-  
-  console.log('[PronoSPIc] Header elements found:', {
-    userNameElement: !!userNameElement,
-    avatarElement: !!avatarElement
-  });
-  
-  if (!userNameElement || !avatarElement) {
-    console.log('[PronoSPIc] Header elements not found, retrying...');
-    setTimeout(updateHeaderUserInfo, 200);
-    return;
-  }
-  
-  var displayName = getDisplayName(currentUserEmail);
+  if (!userNameElement || !avatarElement) { setTimeout(updateHeaderUserInfo, 200); return; }
+
+  userNameElement.textContent = getDisplayName(currentUserEmail);
   var avatarUrl = getAvatarUrl(currentUserEmail);
-  
-  console.log('[PronoSPIc] User info:', {
-    displayName: displayName,
-    avatarUrl: avatarUrl,
-    profilesCount: profiles.length
-  });
-  
-  // Update display name
-  userNameElement.textContent = displayName;
-  
-  // Update avatar
   if (avatarUrl && avatarUrl.match(/^https?:\/\/.+/)) {
-    console.log('[PronoSPIc] Setting header avatar URL:', avatarUrl);
     avatarElement.src = avatarUrl;
     avatarElement.style.display = 'block';
-    avatarElement.onerror = function() {
-      console.log('[PronoSPIc] Header avatar failed to load:', avatarUrl);
-      this.style.display = 'none';
-    };
+    avatarElement.onerror = function() { this.style.display = 'none'; };
   } else {
-    console.log('[PronoSPIc] Hiding header avatar, invalid URL:', avatarUrl);
     avatarElement.style.display = 'none';
   }
 }
 
-// DiceBear avatar styles - no true male/female distinction exists
-// Styles come in 'character' and 'neutral' variants
+// =============================================================================
+// AVATAR (DiceBear)
+// =============================================================================
+
 var avatarStyles = [
-  { id: 'avataaars', name: 'Avataaars', description: 'Personnage cartoon' },
-  { id: 'avataaars-neutral', name: 'Avataaars Neutre', description: 'Cartoon sans genre' },
-  { id: 'lorelei', name: 'Lorelei', description: 'Personnage illustré' },
-  { id: 'lorelei-neutral', name: 'Lorelei Neutre', description: 'Illustré sans genre' },
-  { id: 'adventurer', name: 'Adventurer', description: 'Style aventurier' },
-  { id: 'adventurer-neutral', name: 'Adventurer Neutre', description: 'Aventurier sans genre' },
-  { id: 'big-ears', name: 'Big Ears', description: 'Grandes oreilles' },
-  { id: 'big-ears-neutral', name: 'Big Ears Neutre', description: 'Sans genre' },
-  { id: 'notionists', name: 'Notionists', description: 'Style minimaliste' },
-  { id: 'notionists-neutral', name: 'Notionists Neutre', description: 'Minimaliste neutre' },
-  { id: 'pixel-art', name: 'Pixel Art', description: 'Style rétro 8-bits' },
-  { id: 'pixel-art-neutral', name: 'Pixel Art Neutre', description: 'Rétro sans genre' },
-  { id: 'bottts', name: 'Bottts', description: 'Robots' },
-  { id: 'bottts-neutral', name: 'Bottts Neutre', description: 'Robots neutres' },
-  { id: 'micah', name: 'Micah', description: 'Style illustré moderne' },
-  { id: 'open-peeps', name: 'Open Peeps', description: 'Illustrations ouvertes' },
-  { id: 'personas', name: 'Personas', description: 'Personnages diversifiés' },
-  { id: 'fun-emoji', name: 'Fun Emoji', description: 'Emojis amusants' },
-  { id: 'shapes', name: 'Shapes', description: 'Formes abstraites' },
-  { id: 'identicon', name: 'Identicon', description: 'Géométrique unique' }
+  { id: 'avataaars',          name: 'Avataaars',          description: 'Personnage cartoon' },
+  { id: 'avataaars-neutral',  name: 'Avataaars Neutre',   description: 'Cartoon sans genre' },
+  { id: 'lorelei',            name: 'Lorelei',            description: 'Personnage illustré' },
+  { id: 'lorelei-neutral',    name: 'Lorelei Neutre',     description: 'Illustré sans genre' },
+  { id: 'adventurer',         name: 'Adventurer',         description: 'Style aventurier' },
+  { id: 'adventurer-neutral', name: 'Adventurer Neutre',  description: 'Aventurier sans genre' },
+  { id: 'big-ears',           name: 'Big Ears',           description: 'Grandes oreilles' },
+  { id: 'big-ears-neutral',   name: 'Big Ears Neutre',    description: 'Sans genre' },
+  { id: 'notionists',         name: 'Notionists',         description: 'Style minimaliste' },
+  { id: 'notionists-neutral', name: 'Notionists Neutre',  description: 'Minimaliste neutre' },
+  { id: 'pixel-art',          name: 'Pixel Art',          description: 'Style rétro 8-bits' },
+  { id: 'pixel-art-neutral',  name: 'Pixel Art Neutre',   description: 'Rétro sans genre' },
+  { id: 'bottts',             name: 'Bottts',             description: 'Robots' },
+  { id: 'bottts-neutral',     name: 'Bottts Neutre',      description: 'Robots neutres' },
+  { id: 'micah',              name: 'Micah',              description: 'Style illustré moderne' },
+  { id: 'open-peeps',         name: 'Open Peeps',         description: 'Illustrations ouvertes' },
+  { id: 'personas',           name: 'Personas',           description: 'Personnages diversifiés' },
+  { id: 'fun-emoji',          name: 'Fun Emoji',          description: 'Emojis amusants' },
+  { id: 'shapes',             name: 'Shapes',             description: 'Formes abstraites' },
+  { id: 'identicon',          name: 'Identicon',          description: 'Géométrique unique' }
 ];
 
 var currentAvatarStyle = 'avataaars';
 var generatedAvatars = [];
 
-function generateAvatarUrl(style, seed, sex) {
+function generateAvatarUrl(style, seed) {
   if (!seed) seed = Math.random().toString(36).substring(7);
   var timestamp = Date.now();
   var random = Math.random().toString(36).substring(7);
-  var sexParam = sex ? '&sex[]=' + sex : '';
-  return 'https://api.dicebear.com/7.x/' + style + '/svg?seed=' + seed + sexParam + '&t=' + timestamp + '&r=' + random;
+  return 'https://api.dicebear.com/7.x/' + style + '/svg?seed=' + seed + '&t=' + timestamp + '&r=' + random;
 }
 
-function generateMultipleAvatars(style, count = 6) {
+function generateMultipleAvatars(style, count) {
+  count = count || 6;
   generatedAvatars = [];
   var timestamp = Date.now();
-  
   for (var i = 0; i < count; i++) {
     var uniqueSeed = currentUserEmail + '_' + timestamp + '_' + i + '_' + Math.random().toString(36).substring(7);
-    generatedAvatars.push({
-      url: generateAvatarUrl(style, uniqueSeed),
-      seed: uniqueSeed,
-      style: style
-    });
+    generatedAvatars.push({ url: generateAvatarUrl(style, uniqueSeed), seed: uniqueSeed, style: style });
   }
   return generatedAvatars;
 }
@@ -657,11 +579,12 @@ function generateMultipleAvatars(style, count = 6) {
 function renderMatchFilters() {
   var container = document.getElementById('match-filters');
   var phases = [
-    { key: 'all', label: t('allMatches') },
+    { key: 'all',   label: t('allMatches') },
     { key: 'group', label: t('groupStage') },
-    { key: 'r32', label: t('roundOf32') },
-    { key: 'qf', label: t('quarterFinals') },
-    { key: 'sf', label: t('semiFinals') },
+    { key: 'r32',   label: t('roundOf32') },
+    { key: 'qf',    label: t('quarterFinals') },
+    { key: 'sf',    label: t('semiFinals') },
+    { key: '3rd',   label: t('thirdPlace') },
     { key: 'final', label: t('final') }
   ];
   var html = '';
@@ -863,8 +786,7 @@ function renderGroupsView() {
     var tipGF = currentLang === 'fr' ? 'Buts pour' : 'Goals for';
     var tipGA = currentLang === 'fr' ? 'Buts contre' : 'Goals against';
     var tipGD = currentLang === 'fr' ? 'Différence de buts' : 'Goal difference';
-    var tipPts = 'Points';
-    html += '<th></th><th title="' + tipP + '">' + t('played') + '</th><th title="' + tipW + '">' + t('won') + '</th><th title="' + tipN + '">' + t('drawn') + '</th><th title="' + tipL + '">' + t('lost') + '</th><th title="' + tipGF + '">' + t('goalsFor') + '</th><th title="' + tipGA + '">' + t('goalsAgainst') + '</th><th title="' + tipGD + '">' + t('diff') + '</th><th title="' + tipPts + '">' + t('points') + '</th>';
+    html += '<th></th><th title="' + tipP + '">' + t('played') + '</th><th title="' + tipW + '">' + t('won') + '</th><th title="' + tipN + '">' + t('drawn') + '</th><th title="' + tipL + '">' + t('lost') + '</th><th title="' + tipGF + '">' + t('goalsFor') + '</th><th title="' + tipGA + '">' + t('goalsAgainst') + '</th><th title="' + tipGD + '">' + t('diff') + '</th><th>Pts</th>';
     html += '</tr></thead><tbody>';
     standings.forEach(function(s, idx) {
       var rankClass = idx < 2 ? 'group-rank-' + (idx + 1) : (idx === 2 ? 'group-rank-3' : '');
@@ -877,7 +799,7 @@ function renderGroupsView() {
     });
     html += '</tbody></table></div>';
   });
-  // Top Scorers section
+
   if (topScorers.length > 0) {
     html += '<div class="group-card" style="grid-column: 1 / -1;">';
     html += '<div class="group-title">⚽ ' + t('topScorersTitle') + '</div>';
@@ -972,131 +894,69 @@ function renderLeaderboard() {
 // =============================================================================
 
 function renderProfile() {
-  console.log('[PronoSPIc] renderProfile called');
-  console.log('[PronoSPIc] currentUserEmail:', currentUserEmail);
-  console.log('[PronoSPIc] profiles:', profiles);
-  
   var container = document.getElementById('profile-content');
   var myProfile = profiles.find(function(p) { return p.email === currentUserEmail; });
-  
-  console.log('[PronoSPIc] myProfile found:', !!myProfile);
-  if (myProfile) {
-    console.log('[PronoSPIc] myProfile data:', myProfile);
-  }
-  
-  var currentDisplayName = myProfile ? myProfile.displayName : '';
+  var currentDisplayNameVal = myProfile ? myProfile.displayName : '';
   var currentAvatar = myProfile ? myProfile.avatarUrl : '';
-  
-  // Load gender from profile or use default
-  if (myProfile && myProfile.gender) {
-    currentGender = myProfile.gender;
-    console.log('[PronoSPIc] Loaded gender from profile:', currentGender);
-  } else {
-    currentGender = 'neutral';
-    console.log('[PronoSPIc] Using default gender:', currentGender);
-  }
-  
-  console.log('[PronoSPIc] Final currentGender:', currentGender);
-  
-  var html = '<div style="max-width: 600px; margin: 0 auto;">';
-  html += '<h2 style="margin-bottom: 20px; text-align: center;">' + t('profileTitle') + '</h2>';
-  
-  // Profile form
-  html += '<div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;">';
-  
-  // Avatar preview
-  html += '<div style="text-align: center; margin-bottom: 20px;">';
+
+  var html = '<div style="max-width:600px;margin:0 auto;">';
+  html += '<h2 style="margin-bottom:20px;text-align:center;">' + t('profileTitle') + '</h2>';
+
+  html += '<div style="background:white;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:20px;">';
+  html += '<div style="text-align:center;margin-bottom:20px;">';
   if (currentAvatar) {
-    html += '<img id="avatar-preview" src="' + sanitize(currentAvatar) + '" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #e2e8f0;">';
+    html += '<img id="avatar-preview" src="' + sanitize(currentAvatar) + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #e2e8f0;">';
   } else {
-    html += '<div id="avatar-preview" style="width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin: 0 auto;">👤</div>';
+    html += '<div id="avatar-preview" style="width:80px;height:80px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:32px;color:#94a3b8;margin:0 auto;">👤</div>';
   }
   html += '</div>';
-  
-  // Form fields
-  html += '<div style="margin-bottom: 16px;">';
-  html += '<label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151;">' + t('profileName') + '</label>';
-  html += '<input type="text" id="profile-display-name" value="' + sanitize(currentDisplayName) + '" ';
+  html += '<div style="margin-bottom:16px;">';
+  html += '<label style="display:block;margin-bottom:6px;font-weight:600;color:#374151;">' + t('profileName') + '</label>';
+  html += '<input type="text" id="profile-display-name" value="' + sanitize(currentDisplayNameVal) + '" ';
   html += 'placeholder="' + sanitize(currentUserEmail.split('@')[0]) + '" ';
-  html += 'style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
+  html += 'style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;">';
   html += '</div>';
-  
-  
-  html += '<button class="btn-prono" onclick="saveProfile()" style="width: 100%;">' + t('profileSave') + '</button>';
+  html += '<button class="btn-prono" onclick="saveProfile()" style="width:100%;">' + t('profileSave') + '</button>';
   html += '</div>';
-  
-  // Avatar Generator
-  html += '<div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;">';
-  html += '<h3 style="margin-bottom: 16px; text-align: center;">' + t('avatarGenerator') + '</h3>';
-  
-  // Style selector
-  html += '<div style="margin-bottom: 16px;">';
-  html += '<label style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151;">' + t('avatarStyle') + '</label>';
-  html += '<select id="avatar-style-select" onchange="changeAvatarStyle(this.value)" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;">';
+
+  html += '<div style="background:white;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:20px;">';
+  html += '<h3 style="margin-bottom:16px;text-align:center;">' + t('avatarGenerator') + '</h3>';
+  html += '<div style="margin-bottom:16px;">';
+  html += '<label style="display:block;margin-bottom:6px;font-weight:600;color:#374151;">' + t('avatarStyle') + '</label>';
+  html += '<select id="avatar-style-select" onchange="changeAvatarStyle(this.value)" style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;">';
   avatarStyles.forEach(function(style) {
-    html += '<option value="' + style.id + '"' + (currentAvatarStyle === style.id ? ' selected' : '') + '>' + style.name + ' - ' + style.description + '</option>';
+    html += '<option value="' + style.id + '"' + (currentAvatarStyle === style.id ? ' selected' : '') + '>' + style.name + ' — ' + style.description + '</option>';
   });
-  html += '</select>';
+  html += '</select></div>';
+  html += '<button class="btn-prono" onclick="generateNewAvatars()" style="width:100%;margin-bottom:16px;">' + t('avatarGenerate') + '</button>';
+  html += '<div id="avatar-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>';
   html += '</div>';
-  
-  html += '<button class="btn-prono" onclick="generateNewAvatars()" style="width: 100%; margin-bottom: 16px;">' + t('avatarGenerate') + '</button>';
-  
-  // Avatar grid
-  html += '<div id="avatar-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">';
-  html += '</div>';
-  
-  html += '</div>';
-  
-  // Custom URL
-  html += '<div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;">';
-  html += '<h4 style="margin-bottom: 12px;">' + t('avatarCustom') + '</h4>';
-  html += '<input type="url" id="profile-avatar-url" value="' + sanitize(currentAvatar) + '" ';
-  html += 'placeholder="https://..." ';
-  html += 'style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none;" ';
+
+  html += '<div style="background:white;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:20px;">';
+  html += '<h4 style="margin-bottom:12px;">' + t('avatarCustom') + '</h4>';
+  html += '<input type="url" id="profile-avatar-url" value="' + sanitize(currentAvatar) + '" placeholder="https://..." ';
+  html += 'style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;" ';
   html += 'oninput="updateAvatarPreview(this.value)">';
   html += '</div>';
-  
-  // Info section
-  html += '<div style="padding: 16px; background: #f8fafc; border-radius: 12px; font-size: 13px; color: #64748b;">';
-  html += '<div style="margin-bottom: 8px;"><strong>Email:</strong> ' + sanitize(currentUserEmail) + '</div>';
-  html += '<div><strong>Nom affiché:</strong> ' + sanitize(currentDisplayName || currentUserEmail.split('@')[0]) + '</div>';
+
+  html += '<div style="padding:16px;background:#f8fafc;border-radius:12px;font-size:13px;color:#64748b;">';
+  html += '<div style="margin-bottom:8px;"><strong>Email:</strong> ' + sanitize(currentUserEmail) + '</div>';
+  html += '<div><strong>Nom affiché:</strong> ' + sanitize(currentDisplayNameVal || currentUserEmail.split('@')[0]) + '</div>';
   html += '</div>';
-  
   html += '</div>';
   container.innerHTML = html;
-  
-  // Generate initial avatars after DOM is ready
-  setTimeout(function() {
-    generateNewAvatars();
-    updateHeaderUserInfo(); // Ensure header is updated when profile tab opens
-  }, 100);
+
+  setTimeout(function() { generateNewAvatars(); updateHeaderUserInfo(); }, 100);
 }
 
 function updateAvatarPreview(url) {
   var preview = document.getElementById('avatar-preview');
+  if (!preview) return;
   if (url && url.match(/^https?:\/\/.+/)) {
-    preview.outerHTML = '<img id="avatar-preview" src="' + sanitize(url) + '" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #e2e8f0;">';
+    preview.outerHTML = '<img id="avatar-preview" src="' + sanitize(url) + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #e2e8f0;">';
   } else {
-    preview.outerHTML = '<div id="avatar-preview" style="width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin: 0 auto;">👤</div>';
+    preview.outerHTML = '<div id="avatar-preview" style="width:80px;height:80px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:32px;color:#94a3b8;margin:0 auto;">👤</div>';
   }
-}
-
-function changeGender(gender) {
-  console.log('[PronoSPIc] Gender changed to:', gender);
-  currentGender = gender;
-  
-  // Update style selector with gender-specific styles
-  var styleSelect = document.getElementById('avatar-style-select');
-  if (styleSelect) {
-    var genderStyles = avatarStyles[currentGender] || avatarStyles.neutral;
-    styleSelect.innerHTML = '';
-    genderStyles.forEach(function(style) {
-      styleSelect.innerHTML += '<option value="' + style.id + '">' + style.name + ' - ' + style.description + '</option>';
-    });
-  }
-  
-  // Generate new avatars with the new gender
-  generateNewAvatars();
 }
 
 function changeAvatarStyle(style) {
@@ -1105,127 +965,68 @@ function changeAvatarStyle(style) {
 }
 
 function generateNewAvatars() {
-  console.log('[PronoSPIc] generateNewAvatars called with style:', currentAvatarStyle);
-  
   var avatars = generateMultipleAvatars(currentAvatarStyle, 6);
-  console.log('[PronoSPIc] Generated avatars:', avatars);
-  console.log('[PronoSPIc] Sample avatar URL:', avatars[0] ? avatars[0].url : 'No avatar generated');
-  
   var grid = document.getElementById('avatar-grid');
-  if (!grid) {
-    console.log('[PronoSPIc] Avatar grid not found, retrying...');
-    setTimeout(generateNewAvatars, 100);
-    return;
-  }
-  
+  if (!grid) { setTimeout(generateNewAvatars, 100); return; }
   var html = '';
-  avatars.forEach(function(avatar, index) {
-    console.log('[PronoSPIc] Creating avatar HTML for index', index, 'URL:', avatar.url);
+  avatars.forEach(function(avatar) {
     var safeUrl = sanitize(avatar.url).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-    html += '<div style="text-align: center; cursor: pointer; padding: 8px; border: 2px solid #e2e8f0; border-radius: 12px; transition: all 0.2s;" ';
-    html += 'onmouseover="this.style.borderColor=\'#7c1d4e\'; this.style.transform=\'scale(1.05)\'" ';
-    html += 'onmouseout="this.style.borderColor=\'#e2e8f0\'; this.style.transform=\'scale(1)\'" ';
+    html += '<div style="text-align:center;cursor:pointer;padding:8px;border:2px solid #e2e8f0;border-radius:12px;transition:all 0.2s;" ';
+    html += 'onmouseover="this.style.borderColor=\'#7c1d4e\';this.style.transform=\'scale(1.05)\'" ';
+    html += 'onmouseout="this.style.borderColor=\'#e2e8f0\';this.style.transform=\'scale(1)\'" ';
     html += 'onclick="selectGeneratedAvatar(\'' + safeUrl + '\')">';
-    html += '<img src="' + safeUrl + '" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 4px;" ';
-    html += 'onerror="console.log(\'Avatar load error\'); this.src=\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMC4wMCI+Pjwvc3ZnPg==\';">';
-    html += '<div style="font-size: 10px; color: #94a3b8;">' + t('avatarUseGenerated') + '</div>';
+    html += '<img src="' + safeUrl + '" style="width:60px;height:60px;border-radius:50%;margin-bottom:4px;" ';
+    html += 'onerror="this.src=\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNlMmU4ZjAiLz48L3N2Zz4=\'">';
+    html += '<div style="font-size:10px;color:#94a3b8;">' + t('avatarUseGenerated') + '</div>';
     html += '</div>';
   });
-  
   grid.innerHTML = html;
-  console.log('[PronoSPIc] Avatar grid updated with HTML length:', html.length);
 }
 
 function selectGeneratedAvatar(avatarUrl) {
-  console.log('[PronoSPIc] selectGeneratedAvatar called with:', avatarUrl);
-  
-  // Update input and preview
   var avatarInput = document.getElementById('profile-avatar-url');
   if (avatarInput) avatarInput.value = avatarUrl;
   updateAvatarPreview(avatarUrl);
-  
-  // Update header immediately
   var avatarElement = document.getElementById('header-avatar');
-  if (avatarElement) {
-    avatarElement.src = avatarUrl;
-    avatarElement.style.display = 'block';
-    avatarElement.onerror = function() { this.style.display = 'none'; };
-  }
-  
-  // Auto-save to database
-  var displayName = document.getElementById('profile-display-name') ? document.getElementById('profile-display-name').value.trim() : currentDisplayName;
+  if (avatarElement) { avatarElement.src = avatarUrl; avatarElement.style.display = 'block'; avatarElement.onerror = function() { this.style.display = 'none'; }; }
+
+  var displayName = document.getElementById('profile-display-name') ? document.getElementById('profile-display-name').value.trim() : '';
   var myProfile = profiles.find(function(p) { return p.email === currentUserEmail; });
-  
+
   if (myProfile) {
-    grist.docApi.applyUserActions([['UpdateRecord', PROFILES_TABLE, myProfile.id, {
-      Display_Name: displayName,
-      Avatar_URL: avatarUrl
-    }]]).then(function() {
-      myProfile.avatarUrl = avatarUrl;
-      showToast('Avatar enregistré !', 'success');
-    }).catch(function(e) {
-      console.warn('[PronoSPIc] Auto-save avatar error:', e);
-      showToast('Avatar sélectionné (cliquez Enregistrer pour sauvegarder)', 'info');
-    });
+    grist.docApi.applyUserActions([['UpdateRecord', PROFILES_TABLE, myProfile.id, { Display_Name: displayName, Avatar_URL: avatarUrl }]])
+      .then(function() { myProfile.avatarUrl = avatarUrl; showToast('Avatar enregistré !', 'success'); })
+      .catch(function() { showToast('Avatar sélectionné — cliquez Enregistrer pour sauvegarder', 'info'); });
   } else {
-    grist.docApi.applyUserActions([['AddRecord', PROFILES_TABLE, null, {
-      User_Email: currentUserEmail,
-      Display_Name: displayName,
-      Avatar_URL: avatarUrl
-    }]]).then(function(result) {
-      profiles.push({ id: result.rowIds[0], email: currentUserEmail, displayName: displayName, avatarUrl: avatarUrl });
-      showToast('Avatar enregistré !', 'success');
-    }).catch(function(e) {
-      console.warn('[PronoSPIc] Auto-save avatar error:', e);
-      showToast('Avatar sélectionné (cliquez Enregistrer pour sauvegarder)', 'info');
-    });
+    grist.docApi.applyUserActions([['AddRecord', PROFILES_TABLE, null, { User_Email: currentUserEmail, Display_Name: displayName, Avatar_URL: avatarUrl }]])
+      .then(function(result) { profiles.push({ id: result.rowIds[0], email: currentUserEmail, displayName: displayName, avatarUrl: avatarUrl }); showToast('Avatar enregistré !', 'success'); })
+      .catch(function() { showToast('Avatar sélectionné — cliquez Enregistrer pour sauvegarder', 'info'); });
   }
 }
 
-// Make sure functions are globally accessible
 window.generateNewAvatars = generateNewAvatars;
 window.selectGeneratedAvatar = selectGeneratedAvatar;
 window.changeAvatarStyle = changeAvatarStyle;
-window.changeGender = changeGender;
 window.switchTab = switchTab;
 
 async function saveProfile() {
   var displayName = document.getElementById('profile-display-name').value.trim();
   var avatarUrl = document.getElementById('profile-avatar-url').value.trim();
-  
   try {
     var myProfile = profiles.find(function(p) { return p.email === currentUserEmail; });
-    
     if (myProfile) {
-      // Update existing profile
-      await grist.docApi.applyUserActions([['UpdateRecord', PROFILES_TABLE, myProfile.id, {
-        Display_Name: displayName,
-        Avatar_URL: avatarUrl
-      }]]);
+      await grist.docApi.applyUserActions([['UpdateRecord', PROFILES_TABLE, myProfile.id, { Display_Name: displayName, Avatar_URL: avatarUrl }]]);
       myProfile.displayName = displayName;
       myProfile.avatarUrl = avatarUrl;
     } else {
-      // Create new profile
-      await grist.docApi.applyUserActions([['AddRecord', PROFILES_TABLE, null, {
-        User_Email: currentUserEmail,
-        Display_Name: displayName,
-        Avatar_URL: avatarUrl
-      }]]);
-      profiles.push({
-        email: currentUserEmail,
-        displayName: displayName,
-        avatarUrl: avatarUrl
-      });
+      var result = await grist.docApi.applyUserActions([['AddRecord', PROFILES_TABLE, null, { User_Email: currentUserEmail, Display_Name: displayName, Avatar_URL: avatarUrl }]]);
+      profiles.push({ id: result.rowIds[0], email: currentUserEmail, displayName: displayName, avatarUrl: avatarUrl });
     }
-    
     showToast(t('profileSaved'), 'success');
-    renderProfile(); // Refresh the profile view
-    renderLeaderboard(); // Refresh leaderboard to show new name
-    updateHeaderUserInfo(); // Update header with new avatar/name
-    
-  } catch (e) {
-    showToast('Erreur: ' + e.message, 'error');
-  }
+    renderProfile();
+    renderLeaderboard();
+    updateHeaderUserInfo();
+  } catch (e) { showToast('Erreur: ' + e.message, 'error'); }
 }
 
 // =============================================================================
@@ -1291,7 +1092,6 @@ function renderAdmin() {
   html += '<button class="btn-prono" onclick="recalculateAllPoints()" style="flex:1;min-width:200px;">' + t('recalculate') + '</button>';
   html += '</div>';
 
-  // Bonus validation section
   html += '<div style="background:white;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #e2e8f0;">';
   html += '<h3 style="margin-bottom:12px;">🎯 ' + t('validateBonus') + '</h3>';
   html += '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">';
@@ -1375,10 +1175,7 @@ async function recalculateAllPoints() {
     var m = matches.find(function(mm) { return mm.num === p.matchNum; });
     if (m && m.s1 >= 0 && m.s2 >= 0) {
       var pts = calcPoints(p.ps1, p.ps2, m.s1, m.s2);
-      if (pts !== p.pts) {
-        p.pts = pts;
-        actions.push(['UpdateRecord', PREDICTIONS_TABLE, p.id, { Points: pts }]);
-      }
+      if (pts !== p.pts) { p.pts = pts; actions.push(['UpdateRecord', PREDICTIONS_TABLE, p.id, { Points: pts }]); }
     }
   });
   if (actions.length > 0) {
@@ -1392,18 +1189,13 @@ async function validateBonusPoints() {
   var winnerCode = document.getElementById('admin-winner').value;
   var scorerName = document.getElementById('admin-scorer').value.trim().toLowerCase();
   if (!winnerCode && !scorerName) { showToast(currentLang === 'fr' ? 'Remplis au moins un champ' : 'Fill at least one field', 'error'); return; }
-
   var actions = [];
   bonusData.forEach(function(b) {
     var pts = 0;
     if (winnerCode && b.winner === winnerCode) pts += 5;
     if (scorerName && (b.scorer || '').toLowerCase().trim() === scorerName) pts += 3;
-    if (pts !== (b.pts || 0)) {
-      b.pts = pts;
-      actions.push(['UpdateRecord', BONUS_TABLE, b.id, { Points: pts }]);
-    }
+    if (pts !== (b.pts || 0)) { b.pts = pts; actions.push(['UpdateRecord', BONUS_TABLE, b.id, { Points: pts }]); }
   });
-
   if (actions.length > 0) {
     try { await grist.docApi.applyUserActions(actions); } catch (e) { console.error(e); }
   }
@@ -1434,40 +1226,24 @@ async function applySecurityRules() {
     for (var r = 0; r < PRONO_ACL_RULES.length; r++) {
       var rule = PRONO_ACL_RULES[r];
       if (existingTables.indexOf(rule.tableId) === -1) continue;
-
       var alreadyHasRules = false;
       for (var ri = 0; ri < rulesData.id.length; ri++) {
         if (rulesData.memo && rulesData.memo[ri] && rulesData.memo[ri].indexOf('PronoSPIc') !== -1) {
           var resId = rulesData.resource[ri];
           for (var rsi = 0; rsi < resourcesData.id.length; rsi++) {
-            if (resourcesData.id[rsi] === resId && resourcesData.tableId[rsi] === rule.tableId) {
-              alreadyHasRules = true; break;
-            }
+            if (resourcesData.id[rsi] === resId && resourcesData.tableId[rsi] === rule.tableId) { alreadyHasRules = true; break; }
           }
         }
         if (alreadyHasRules) break;
       }
       if (alreadyHasRules) continue;
-
       var tempResourceId = tempId--;
       actions.push(['AddRecord', '_grist_ACLResources', tempResourceId, { tableId: rule.tableId, colIds: '*' }]);
-      actions.push(['AddRecord', '_grist_ACLRules', null, {
-        resource: tempResourceId, aclFormula: 'user.Access in [OWNER]',
-        permissionsText: rule.ownerPerms, memo: 'PronoSPIc - Owner'
-      }]);
-      actions.push(['AddRecord', '_grist_ACLRules', null, {
-        resource: tempResourceId, aclFormula: '',
-        permissionsText: rule.editorPerms, memo: 'PronoSPIc - Default'
-      }]);
+      actions.push(['AddRecord', '_grist_ACLRules', null, { resource: tempResourceId, aclFormula: 'user.Access in [OWNER]', permissionsText: rule.ownerPerms, memo: 'PronoSPIc - Owner' }]);
+      actions.push(['AddRecord', '_grist_ACLRules', null, { resource: tempResourceId, aclFormula: '', permissionsText: rule.editorPerms, memo: 'PronoSPIc - Default' }]);
     }
-
-    if (actions.length > 0) {
-      await grist.docApi.applyUserActions(actions);
-      showToast(currentLang === 'fr' ? 'Sécurité activée' : 'Security enabled', 'success');
-    }
-  } catch (e) {
-    console.warn('[PronoSPIc] ACL apply skipped:', e.message);
-  }
+    if (actions.length > 0) { await grist.docApi.applyUserActions(actions); showToast(currentLang === 'fr' ? 'Sécurité activée' : 'Security enabled', 'success'); }
+  } catch (e) { console.warn('[PronoSPIc] ACL apply skipped:', e.message); }
 }
 
 // =============================================================================
@@ -1475,7 +1251,6 @@ async function applySecurityRules() {
 // =============================================================================
 
 async function detectRole() {
-  var helperWriteSucceeded = false;
   try {
     var tables = await grist.docApi.listTables();
     if (tables.indexOf(USERINFO_TABLE) !== -1) {
@@ -1486,7 +1261,6 @@ async function detectRole() {
         for (var r = 0; r < rowIds.length; r++) actions.push(['RemoveRecord', USERINFO_TABLE, rowIds[r]]);
         actions.push(['AddRecord', USERINFO_TABLE, null, {}]);
         await grist.docApi.applyUserActions(actions);
-        helperWriteSucceeded = true;
       } catch (e) { /* read-only */ }
 
       var tokenInfo = await grist.docApi.getAccessToken({ readOnly: true });
@@ -1499,38 +1273,34 @@ async function detectRole() {
   } catch (e) { /* ignore */ }
 
   try {
-    await grist.docApi.applyUserActions([['ModifyColumn', USERINFO_TABLE, 'UserEmail', {
-      isFormula: false, formula: 'user.Email', recalcWhen: 2, recalcDeps: null
-    }]]);
+    await grist.docApi.applyUserActions([['ModifyColumn', USERINFO_TABLE, 'UserEmail', { isFormula: false, formula: 'user.Email', recalcWhen: 2, recalcDeps: null }]]);
     isOwner = true;
-  } catch (e) {
-    isOwner = false;
-  }
+  } catch (e) { isOwner = false; }
 
-  // Hide admin tab for non-owners
   var adminBtn = document.querySelector('[data-tab="admin"]');
   if (adminBtn) adminBtn.style.display = isOwner ? '' : 'none';
 }
 
 // =============================================================================
-// API INTEGRATION FOR MATCH RESULTS
+// API: MATCH RESULTS
 // =============================================================================
 
 var WORLD_CUP_API_URL = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
-var API_KEY = ''; // Can be configured for future APIs that require authentication
 
-// Team name mapping to match widget team codes
-var TEAM_NAME_MAPPING = {
-  'Mexico': 'MEX', 'South Korea': 'KOR', 'South Africa': 'RSA', 'Czech Republic': 'CZE',
-  'Canada': 'CAN', 'Bosnia & Herzegovina': 'BIH', 'Qatar': 'QAT', 'Switzerland': 'SUI',
+var TEAM_NAME_TO_CODE = {
+  'Mexico': 'MEX', 'South Korea': 'KOR', 'Korea Republic': 'KOR', 'South Africa': 'RSA',
+  'Czech Republic': 'CZE', 'Czechia': 'CZE',
+  'Canada': 'CAN', 'Bosnia & Herzegovina': 'BIH', 'Bosnia-Herzegovina': 'BIH', 'Qatar': 'QAT', 'Switzerland': 'SUI',
   'Brazil': 'BRA', 'Morocco': 'MAR', 'Haiti': 'HAI', 'Scotland': 'SCO',
-  'USA': 'USA', 'Paraguay': 'PAR', 'Australia': 'AUS', 'Turkey': 'TUR',
-  'Argentina': 'ARG', 'Peru': 'PER', 'Chile': 'CHI', 'Ecuador': 'ECU',
-  'France': 'FRA', 'Netherlands': 'NED', 'Senegal': 'SEN', 'Poland': 'POL',
-  'England': 'ENG', 'Wales': 'WAL', 'IR Iran': 'IRN', 'USA': 'USA',
-  'Spain': 'ESP', 'Germany': 'GER', 'Japan': 'JPN', 'Costa Rica': 'CRC',
-  'Belgium': 'BEL', 'Croatia': 'CRO', 'Canada': 'CAN', 'Morocco': 'MAR',
-  'Portugal': 'POR', 'Ghana': 'GHA', 'Uruguay': 'URU', 'South Korea': 'KOR'
+  'USA': 'USA', 'United States': 'USA', 'Paraguay': 'PAR', 'Australia': 'AUS', 'Turkey': 'TUR', 'Türkiye': 'TUR',
+  'Germany': 'GER', 'Curaçao': 'CUW', "Ivory Coast": 'CIV', "Côte d'Ivoire": 'CIV', 'Ecuador': 'ECU',
+  'Netherlands': 'NED', 'Japan': 'JPN', 'Sweden': 'SWE', 'Tunisia': 'TUN',
+  'Belgium': 'BEL', 'Egypt': 'EGY', 'Iran': 'IRN', 'IR Iran': 'IRN', 'New Zealand': 'NZL',
+  'Spain': 'ESP', 'Cape Verde': 'CPV', 'Saudi Arabia': 'KSA', 'Uruguay': 'URU',
+  'France': 'FRA', 'Senegal': 'SEN', 'Norway': 'NOR', 'Iraq': 'IRQ',
+  'Argentina': 'ARG', 'Algeria': 'ALG', 'Austria': 'AUT', 'Jordan': 'JOR',
+  'Portugal': 'POR', 'DR Congo': 'COD', 'Congo DR': 'COD', 'Uzbekistan': 'UZB', 'Colombia': 'COL',
+  'England': 'ENG', 'Croatia': 'CRO', 'Ghana': 'GHA', 'Panama': 'PAN'
 };
 
 async function fetchMatchResults() {
@@ -1540,72 +1310,53 @@ async function fetchMatchResults() {
     if (!response.ok) throw new Error('HTTP ' + response.status);
     var data = await response.json();
     var updatedMatches = [];
-    
-    // Process each match from API
+
     for (var ai = 0; ai < data.matches.length; ai++) {
       var apiMatch = data.matches[ai];
+      var apiT1Name = apiMatch.team1 || '';
+      var apiT2Name = apiMatch.team2 || '';
+      var apiCode1 = TEAM_NAME_TO_CODE[apiT1Name] || apiT1Name;
+      var apiCode2 = TEAM_NAME_TO_CODE[apiT2Name] || apiT2Name;
+
       var localMatch = matches.find(function(m) {
-        var t1 = getTeam(m.t1); var t2 = getTeam(m.t2);
-        var names1 = [t1.name_en, t1.name_fr, t1.code].map(function(n) { return (n || '').toLowerCase(); });
-        var names2 = [t2.name_en, t2.name_fr, t2.code].map(function(n) { return (n || '').toLowerCase(); });
-        var api1 = (apiMatch.team1 || '').toLowerCase();
-        var api2 = (apiMatch.team2 || '').toLowerCase();
-        return (names1.indexOf(api1) !== -1 && names2.indexOf(api2) !== -1) ||
-               (names1.indexOf(api2) !== -1 && names2.indexOf(api1) !== -1);
+        return (m.t1 === apiCode1 && m.t2 === apiCode2) || (m.t1 === apiCode2 && m.t2 === apiCode1);
       });
-      
+
       if (localMatch && apiMatch.score && apiMatch.score.ft) {
         var apiScore1 = apiMatch.score.ft[0];
         var apiScore2 = apiMatch.score.ft[1];
+        // If API has teams in reverse order, swap scores
+        if (localMatch.t1 === apiCode2 && localMatch.t2 === apiCode1) {
+          var tmp = apiScore1; apiScore1 = apiScore2; apiScore2 = tmp;
+        }
         if (localMatch.s1 !== apiScore1 || localMatch.s2 !== apiScore2) {
-          updatedMatches.push({
-            id: localMatch.id,
-            num: localMatch.num,
-            oldScore1: localMatch.s1,
-            oldScore2: localMatch.s2,
-            newScore1: apiScore1,
-            newScore2: apiScore2
-          });
+          updatedMatches.push({ id: localMatch.id, num: localMatch.num, newScore1: apiScore1, newScore2: apiScore2 });
         }
       }
     }
-    
-    // Extract top scorers from API data (goals per player)
+
+    // Extract top scorers
     var scorerMap = {};
+    var allGoals = [];
     if (data.rounds) {
-      for (var ri = 0; ri < data.rounds.length; ri++) {
-        var roundMatches = data.rounds[ri].matches || [];
-        for (var rmi = 0; rmi < roundMatches.length; rmi++) {
-          var rm = roundMatches[rmi];
-          var goals = rm.goals || [];
-          for (var gi = 0; gi < goals.length; gi++) {
-            var g = goals[gi];
-            var name = g.name || g.player || '';
-            if (name) {
-              if (!scorerMap[name]) scorerMap[name] = { name: name, team: g.team || '', goals: 0 };
-              scorerMap[name].goals++;
-            }
-          }
-        }
-      }
+      data.rounds.forEach(function(round) {
+        (round.matches || []).forEach(function(rm) { allGoals = allGoals.concat(rm.goals || []); });
+      });
     }
     if (data.matches) {
-      for (var mi = 0; mi < data.matches.length; mi++) {
-        var mGoals = data.matches[mi].goals || [];
-        for (var mgi = 0; mgi < mGoals.length; mgi++) {
-          var mg = mGoals[mgi];
-          var mName = mg.name || mg.player || '';
-          if (mName) {
-            if (!scorerMap[mName]) scorerMap[mName] = { name: mName, team: mg.team || '', goals: 0 };
-            scorerMap[mName].goals++;
-          }
-        }
-      }
+      data.matches.forEach(function(m) { allGoals = allGoals.concat(m.goals || []); });
     }
+    allGoals.forEach(function(g) {
+      var name = g.name || g.player || '';
+      if (name) {
+        if (!scorerMap[name]) scorerMap[name] = { name: name, team: g.team || '', goals: 0 };
+        scorerMap[name].goals++;
+      }
+    });
     topScorers = Object.values(scorerMap).sort(function(a, b) { return b.goals - a.goals; });
 
     if (updatedMatches.length === 0) {
-      showToast(currentLang === 'fr' ? 'Données buteurs mises à jour' : 'Scorer data updated', 'info');
+      showToast(currentLang === 'fr' ? 'Données à jour' : 'Data up to date', 'info');
       renderCurrentTab();
       return;
     }
@@ -1614,21 +1365,17 @@ async function fetchMatchResults() {
       return ['UpdateRecord', MATCHES_TABLE, um.id, { Score1: um.newScore1, Score2: um.newScore2 }];
     });
     await grist.docApi.applyUserActions(updateActions);
-
     updatedMatches.forEach(function(um) {
       var lm = matches.find(function(mm) { return mm.id === um.id; });
       if (lm) { lm.s1 = um.newScore1; lm.s2 = um.newScore2; }
     });
-
     for (var ui = 0; ui < updatedMatches.length; ui++) {
       await recalculatePointsForMatch(updatedMatches[ui].num, updatedMatches[ui].newScore1, updatedMatches[ui].newScore2);
     }
-
     renderCurrentTab();
     showToast(updatedMatches.length + (currentLang === 'fr' ? ' résultat(s) mis à jour ✓' : ' result(s) updated ✓'), 'success');
-    
   } catch (error) {
-    console.error('Erreur lors de la récupération des résultats:', error);
+    console.error('fetchMatchResults error:', error);
     showToast('Erreur: ' + error.message, 'error');
   }
 }
@@ -1648,7 +1395,6 @@ if (!isInsideGrist()) {
     if (isOwner) { await seedTeams(); await seedMatches(); await applySecurityRules(); }
     await loadAllData();
     renderCurrentTab();
-    // Ensure header is updated after everything is loaded
     setTimeout(updateHeaderUserInfo, 100);
   })();
 }
