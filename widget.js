@@ -827,9 +827,7 @@ function renderMatchesView() {
     var isClosed = isMatchClosed(m);
 
     html += '<div class="match-card">';
-    html += '<div class="match-header">';
-    html += '<span class="match-phase-badge ' + phaseClass(m.phase) + '">';
-    html += m.group ? t('group') + ' ' + m.group : phaseLabel(m.phase);
+   
     var frenchKickoff = formatFrenchKickoff(m.kickoffUtc);
 
 html += '<div class="match-header" style="gap:8px;align-items:flex-start;">';
