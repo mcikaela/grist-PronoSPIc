@@ -34,7 +34,8 @@ var i18n = {
     avatarGenerator: 'Générateur d\'avatar', avatarStyle: 'Style', avatarGenerate: 'Générer un avatar',
     avatarUseGenerated: 'Utiliser cet avatar', avatarRandom: 'Aléatoire', avatarCustom: 'URL personnalisée',
     tbd: 'À déterminer', matchNumber: 'Match', vs: '-',
-    group: 'Groupe', noPronosYet: 'Tu n\'as pas encore pronostiqué'
+    group: 'Groupe', noPronosYet: 'Tu n\'as pas encore pronostiqué',
+    locked: 'Pronostics verrouillés', lockedForMatch: 'Pronostics verrouillés pour ce match'
   },
   en: {
     subtitle: 'World Cup 2026 Predictions',
@@ -59,7 +60,8 @@ var i18n = {
     avatarGenerator: 'Avatar Generator', avatarStyle: 'Style', avatarGenerate: 'Generate Avatar',
     avatarUseGenerated: 'Use this avatar', avatarRandom: 'Random', avatarCustom: 'Custom URL',
     tbd: 'TBD', matchNumber: 'Match', vs: '-',
-    group: 'Group', noPronosYet: 'No predictions yet'
+    group: 'Group', noPronosYet: 'No predictions yet',
+    locked: 'Predictions locked', lockedForMatch: 'Predictions locked for this match'
   }
 };
 
@@ -290,25 +292,6 @@ var MATCH_DATA = [
 // =============================================================================
 // UTILS
 // =============================================================================
-function kickoffMillis(value) {
-  if (!value) return null;
-
-  // Grist peut renvoyer les DateTime comme nombre ou comme texte selon le contexte/API.
-  if (typeof value === 'number') return value * 1000;
-
-  var parsed = Date.parse(value);
-  return isNaN(parsed) ? null : parsed;
-}
-
-function isMatchClosed(m) {
-  if (!m) return true;
-  if (m.locked) return true;
-
-  var kickoff = kickoffMillis(m.kickoffUtc);
-  if (!kickoff) return true;
-
-  return Date.now() >= kickoff;
-}
 
 function flagUrl(flagCode) {
   if (!flagCode || flagCode === 'TBD') return '';
@@ -380,6 +363,160 @@ function renderCurrentTab() {
   if (activeTab === 'admin') renderAdmin();
 }
 
+
+// =============================================================================
+// MATCH LOCKING
+// =============================================================================
+
+// The match times in MATCH_DATA are local stadium times. These offsets are valid
+// for the World Cup 2026 dates in June/July. They are used to store a single
+// UTC kickoff instant in Grist.
+var CITY_UTC_OFFSET_HOURS = {
+  'Mexico City': -6,
+  'Guadalajara': -6,
+  'Monterrey': -6,
+  'Atlanta': -4,
+  'Boston': -4,
+  'Miami': -4,
+  'New York': -4,
+  'Philadelphia': -4,
+  'Toronto': -4,
+  'Dallas': -5,
+  'Houston': -5,
+  'Kansas City': -5,
+  'Los Angeles': -7,
+  'San Francisco': -7,
+  'Seattle': -7,
+  'Vancouver': -7
+};
+
+var MATCH_CLOSED_FORMULA = "m = Prono_Matches.lookupOne(Match_Number=$Match_Number)\n" +
+  "return True if not m else bool(m.Locked or (m.Kickoff_UTC and NOW() >= m.Kickoff_UTC))";
+
+function kickoffUtcSecondsFromLocal(dateStr, timeStr, city) {
+  if (!dateStr || !timeStr) return null;
+  var offset = CITY_UTC_OFFSET_HOURS[city];
+  if (offset === undefined || offset === null) return null;
+
+  var dateParts = String(dateStr).split('-').map(function(x) { return parseInt(x, 10); });
+  var timeParts = String(timeStr).split(':').map(function(x) { return parseInt(x, 10); });
+  if (dateParts.length < 3 || timeParts.length < 2) return null;
+
+  var y = dateParts[0];
+  var m = dateParts[1];
+  var d = dateParts[2];
+  var h = timeParts[0];
+  var min = timeParts[1];
+  if ([y, m, d, h, min].some(function(v) { return isNaN(v); })) return null;
+
+  // Local time = UTC + offset, so UTC = local - offset.
+  var utcMillis = Date.UTC(y, m - 1, d, h - offset, min, 0, 0);
+  return Math.floor(utcMillis / 1000);
+}
+
+function gristDateTimeToMillis(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number') return value * 1000;
+  if (value instanceof Date) return value.getTime();
+
+  var text = String(value).trim();
+  if (!text) return null;
+
+  // Numeric strings from Grist are usually seconds since epoch.
+  if (/^-?\d+(\.\d+)?$/.test(text)) return parseFloat(text) * 1000;
+
+  var parsed = Date.parse(text);
+  return isNaN(parsed) ? null : parsed;
+}
+
+function isMatchClosed(m) {
+  if (!m) return true;
+  if (m.locked) return true;
+
+  var kickoff = gristDateTimeToMillis(m.kickoffUtc);
+  if (!kickoff) return false; // If the kickoff is not configured yet, do not block the UI.
+
+  return Date.now() >= kickoff;
+}
+
+function formatKickoffForDebug(seconds) {
+  if (!seconds) return '';
+  try { return new Date(seconds * 1000).toISOString(); } catch (e) { return ''; }
+}
+
+async function ensureColumn(tableId, colId, fields) {
+  try {
+    await grist.docApi.applyUserActions([['AddColumn', tableId, colId, fields]]);
+  } catch (e) {
+    // Column probably already exists, or the current user cannot change structure.
+  }
+}
+
+async function ensureLockColumns() {
+  await ensureColumn(MATCHES_TABLE, 'Kickoff_UTC', { type: 'DateTime:UTC', label: 'Kickoff UTC' });
+  await ensureColumn(MATCHES_TABLE, 'Locked', { type: 'Bool', label: 'Locked' });
+  await ensureColumn(PREDICTIONS_TABLE, 'Match_Closed', {
+    type: 'Bool',
+    label: 'Match Closed',
+    isFormula: true,
+    formula: MATCH_CLOSED_FORMULA
+  });
+
+  // Keep the formula up to date if the column already existed.
+  try {
+    await grist.docApi.applyUserActions([['ModifyColumn', PREDICTIONS_TABLE, 'Match_Closed', {
+      type: 'Bool',
+      isFormula: true,
+      formula: MATCH_CLOSED_FORMULA
+    }]]);
+  } catch (e) { /* non-owner or column missing: ignored */ }
+}
+
+async function backfillKickoffUtc() {
+  if (!isOwner) return;
+  try {
+    var md = await grist.docApi.fetchTable(MATCHES_TABLE);
+    if (!md || !md.id) return;
+
+    var actions = [];
+    for (var i = 0; i < md.id.length; i++) {
+      var existingKickoff = md.Kickoff_UTC ? md.Kickoff_UTC[i] : null;
+      var kickoffSeconds = kickoffUtcSecondsFromLocal(md.Match_Date[i], md.Match_Time[i], md.City[i]);
+      var fields = {};
+
+      if (!existingKickoff && kickoffSeconds) fields.Kickoff_UTC = kickoffSeconds;
+      if (md.Locked && (md.Locked[i] === null || md.Locked[i] === undefined || md.Locked[i] === '')) fields.Locked = false;
+
+      if (Object.keys(fields).length > 0) {
+        actions.push(['UpdateRecord', MATCHES_TABLE, md.id[i], fields]);
+      }
+    }
+
+    if (actions.length > 0) await grist.docApi.applyUserActions(actions);
+  } catch (e) {
+    console.warn('[PronoSPIc] backfillKickoffUtc skipped:', e.message);
+  }
+}
+
+async function autoLockStartedMatches() {
+  if (!isOwner) return;
+
+  var toLock = matches.filter(function(m) {
+    return !m.locked && isMatchClosed({ kickoffUtc: m.kickoffUtc, locked: false });
+  });
+  if (toLock.length === 0) return;
+
+  try {
+    var actions = toLock.map(function(m) {
+      return ['UpdateRecord', MATCHES_TABLE, m.id, { Locked: true }];
+    });
+    await grist.docApi.applyUserActions(actions);
+    toLock.forEach(function(m) { m.locked = true; });
+  } catch (e) {
+    console.warn('[PronoSPIc] autoLockStartedMatches skipped:', e.message);
+  }
+}
+
 // =============================================================================
 // GRIST: TABLE MANAGEMENT
 // =============================================================================
@@ -399,14 +536,16 @@ async function ensureTables() {
         { id: 'Team1_Code', type: 'Text' }, { id: 'Team2_Code', type: 'Text' },
         { id: 'Match_Date', type: 'Text' }, { id: 'Match_Time', type: 'Text' },
         { id: 'Stadium', type: 'Text' }, { id: 'City', type: 'Text' },
-        { id: 'Score1', type: 'Int' }, { id: 'Score2', type: 'Int' }
+        { id: 'Score1', type: 'Int' }, { id: 'Score2', type: 'Int' },
+        { id: 'Kickoff_UTC', type: 'DateTime:UTC' }, { id: 'Locked', type: 'Bool' }
       ]]]);
     }
     if (tables.indexOf(PREDICTIONS_TABLE) === -1) {
       await grist.docApi.applyUserActions([['AddTable', PREDICTIONS_TABLE, [
         { id: 'User_Email', type: 'Text' }, { id: 'Match_Number', type: 'Int' },
         { id: 'Pred_Score1', type: 'Int' }, { id: 'Pred_Score2', type: 'Int' },
-        { id: 'Points', type: 'Int' }
+        { id: 'Points', type: 'Int' },
+        { id: 'Match_Closed', type: 'Bool', isFormula: true, formula: MATCH_CLOSED_FORMULA }
       ]]]);
     }
     if (tables.indexOf(BONUS_TABLE) === -1) {
@@ -429,6 +568,7 @@ async function ensureTables() {
         { id: 'Avatar_URL', type: 'Text' }
       ]]]);
     }
+    await ensureLockColumns();
   } catch (e) {
     console.warn('[PronoSPIc] ensureTables error:', e.message);
   }
@@ -453,7 +593,8 @@ async function seedMatches() {
       return ['AddRecord', MATCHES_TABLE, null, {
         Match_Number: m.num, Phase: m.phase, Group_Letter: m.group,
         Team1_Code: m.t1, Team2_Code: m.t2, Match_Date: m.date, Match_Time: m.time,
-        Stadium: m.stadium, City: m.city, Score1: -1, Score2: -1
+        Stadium: m.stadium, City: m.city, Score1: -1, Score2: -1,
+        Kickoff_UTC: kickoffUtcSecondsFromLocal(m.date, m.time, m.city), Locked: false
       }];
     });
     await grist.docApi.applyUserActions(actions);
@@ -471,7 +612,9 @@ async function loadAllData() {
           t1: md.Team1_Code[i], t2: md.Team2_Code[i], date: md.Match_Date[i], time: md.Match_Time[i],
           stadium: md.Stadium[i], city: md.City[i],
           s1: md.Score1[i] !== undefined ? md.Score1[i] : -1,
-          s2: md.Score2[i] !== undefined ? md.Score2[i] : -1
+          s2: md.Score2[i] !== undefined ? md.Score2[i] : -1,
+          kickoffUtc: md.Kickoff_UTC ? md.Kickoff_UTC[i] : null,
+          locked: md.Locked ? !!md.Locked[i] : false
         });
       }
     }
@@ -661,6 +804,7 @@ function renderMatchesView() {
     var myPred = predictions.find(function(p) { return p.matchNum === m.num; });
     var hasResult = m.s1 >= 0 && m.s2 >= 0;
     var isTBD = m.t1 === 'TBD' || m.t2 === 'TBD';
+    var isClosed = isMatchClosed(m);
 
     html += '<div class="match-card">';
     html += '<div class="match-header">';
@@ -693,10 +837,10 @@ function renderMatchesView() {
       var ptsLabel = myPred.pts === 3 ? t('exact') + ' +3' : (myPred.pts === 1 ? t('goodResult') + ' +1' : t('wrong'));
       html += '<div class="match-result ' + ptsClass + '">' + (currentLang === 'fr' ? 'Mon prono' : 'My pred') + ': ' + myPred.ps1 + '-' + myPred.ps2 + ' · ' + ptsLabel + '</div>';
     } else if (!hasResult && myPred) {
-      html += '<div class="match-result result-pending">' + (currentLang === 'fr' ? 'Mon prono' : 'My pred') + ': ' + myPred.ps1 + '-' + myPred.ps2 + ' · ' + t('pending') + '</div>';
+      html += '<div class="match-result result-pending">' + (currentLang === 'fr' ? 'Mon prono' : 'My pred') + ': ' + myPred.ps1 + '-' + myPred.ps2 + ' · ' + (isClosed ? '🔒 ' + t('locked') : t('pending')) + '</div>';
     }
 
-    if (!hasResult && !isTBD) {
+    if (!hasResult && !isTBD && !isClosed) {
       var ps1 = myPred ? myPred.ps1 : 0;
       var ps2 = myPred ? myPred.ps2 : 0;
       html += '<div class="match-score">';
@@ -705,6 +849,8 @@ function renderMatchesView() {
       html += '<input type="number" class="score-input" id="s2-' + m.num + '" value="' + ps2 + '" min="0" max="20">';
       html += '</div>';
       html += '<button class="btn-prono' + (myPred ? ' saved' : '') + '" onclick="savePrediction(' + m.num + ')">' + (myPred ? t('saved') : t('saveProno')) + '</button>';
+    } else if (!hasResult && !isTBD && isClosed) {
+      html += '<div class="match-result result-pending">🔒 ' + t('locked') + '</div>';
     }
 
     html += '<div class="match-info">🏟️ ' + sanitize(m.stadium) + ' · ' + sanitize(m.city) + '</div>';
@@ -767,6 +913,14 @@ async function savePrediction(matchNum) {
   var s1El = document.getElementById('s1-' + matchNum);
   var s2El = document.getElementById('s2-' + matchNum);
   if (!s1El || !s2El) return;
+  var match = matches.find(function(m) { return m.num === matchNum; });
+  if (isMatchClosed(match)) {
+    showToast(t('lockedForMatch'), 'error');
+    await loadAllData();
+    renderMatchesView();
+    return;
+  }
+
   var ps1 = parseInt(s1El.value) || 0;
   var ps2 = parseInt(s2El.value) || 0;
   var existing = predictions.find(function(p) { return p.matchNum === matchNum; });
@@ -1172,9 +1326,9 @@ async function saveResult(matchId, matchNum) {
   var s2 = parseInt(document.getElementById('admin-s2-' + matchNum).value);
   if (isNaN(s1) || isNaN(s2)) return;
   try {
-    await grist.docApi.applyUserActions([['UpdateRecord', MATCHES_TABLE, matchId, { Score1: s1, Score2: s2 }]]);
+    await grist.docApi.applyUserActions([['UpdateRecord', MATCHES_TABLE, matchId, { Score1: s1, Score2: s2, Locked: true }]]);
     var m = matches.find(function(mm) { return mm.id === matchId; });
-    if (m) { m.s1 = s1; m.s2 = s2; }
+    if (m) { m.s1 = s1; m.s2 = s2; m.locked = true; }
     await recalculatePointsForMatch(matchNum, s1, s2);
     showToast(t('adminSave') + ' ✓', 'success');
   } catch (e) { showToast('Error: ' + e.message, 'error'); }
@@ -1241,7 +1395,7 @@ async function validateBonusPoints() {
 var PRONO_ACL_RULES = [
   { tableId: 'Prono_Teams',       ownerPerms: '+CRUDS', editorPerms: '+R-CUD' },
   { tableId: 'Prono_Matches',     ownerPerms: '+CRUDS', editorPerms: '+R-CUD' },
-  { tableId: 'Prono_Predictions', ownerPerms: '+CRUDS', editorPerms: '+RCUD' },
+  { tableId: 'Prono_Predictions', ownerPerms: '+CRUDS', editorPerms: '+R-CUD' },
   { tableId: 'Prono_Bonus',       ownerPerms: '+CRUDS', editorPerms: '+RCUD' },
   { tableId: 'Prono_UserInfo',    ownerPerms: '+CRUDS', editorPerms: '+RCUD' }
 ];
@@ -1393,12 +1547,12 @@ async function fetchMatchResults() {
     }
 
     var updateActions = updatedMatches.map(function(um) {
-      return ['UpdateRecord', MATCHES_TABLE, um.id, { Score1: um.newScore1, Score2: um.newScore2 }];
+      return ['UpdateRecord', MATCHES_TABLE, um.id, { Score1: um.newScore1, Score2: um.newScore2, Locked: true }];
     });
     await grist.docApi.applyUserActions(updateActions);
     updatedMatches.forEach(function(um) {
       var lm = matches.find(function(mm) { return mm.id === um.id; });
-      if (lm) { lm.s1 = um.newScore1; lm.s2 = um.newScore2; }
+      if (lm) { lm.s1 = um.newScore1; lm.s2 = um.newScore2; lm.locked = true; }
     });
     for (var ui = 0; ui < updatedMatches.length; ui++) {
       await recalculatePointsForMatch(updatedMatches[ui].num, updatedMatches[ui].newScore1, updatedMatches[ui].newScore2);
@@ -1423,8 +1577,9 @@ if (!isInsideGrist()) {
     await grist.ready({ requiredAccess: 'full' });
     await detectRole();
     await ensureTables();
-    if (isOwner) { await seedTeams(); await seedMatches(); await applySecurityRules(); }
+    if (isOwner) { await seedTeams(); await seedMatches(); await backfillKickoffUtc(); await applySecurityRules(); }
     await loadAllData();
+    if (isOwner) { await autoLockStartedMatches(); }
     renderCurrentTab();
     setTimeout(updateHeaderUserInfo, 100);
   })();
