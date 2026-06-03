@@ -823,8 +823,7 @@ function setGroupFilter(group) {
 function renderMatchesView() {
   renderMatchFilters();
   renderBonusBar();
-  var bonusClosed = isBonusClosed();
-  var filtered = matches.filter(function(m) {
+    var filtered = matches.filter(function(m) {
     if (activeGroupFilter) return m.group === activeGroupFilter;
     if (activePhaseFilter !== 'all') return m.phase === activePhaseFilter;
     return true;
@@ -917,48 +916,87 @@ html += '</div>';
 function renderBonusBar() {
   var container = document.getElementById('bonus-bar');
   if (!container) return;
-  var myBonus = bonusData.find(function(b) { return (b.email || '').toLowerCase().trim() === (currentUserEmail || '').toLowerCase().trim(); });
+
+  var bonusClosed = isBonusClosed();
+
+  var myBonus = bonusData.find(function(b) {
+    return (b.email || '').toLowerCase().trim() === (currentUserEmail || '').toLowerCase().trim();
+  });
 
   var html = '<div class="bonus-section">';
   html += '<div class="bonus-title">🎯 ' + t('bonusTitle') + '</div>';
   html += '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">';
+
   html += '<div style="flex:1;min-width:150px;">';
   html += '<label style="font-size:11px;font-weight:600;color:#64748b;">' + t('bonusWinner') + '</label>';
-  html += '<select id="bonus-winner" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">';
+  html += '<select id="bonus-winner" ' + (bonusClosed ? 'disabled ' : '') + 'style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">';
   html += '<option value="">--</option>';
+
   TEAM_DATA.forEach(function(team) {
     var sel = myBonus && myBonus.winner === team.code ? ' selected' : '';
     html += '<option value="' + team.code + '"' + sel + '>' + (currentLang === 'fr' ? team.name_fr : team.name_en) + '</option>';
   });
+
   html += '</select></div>';
+
   html += '<div style="flex:1;min-width:150px;">';
   html += '<label style="font-size:11px;font-weight:600;color:#64748b;">' + t('bonusTopScorer') + '</label>';
-  html += '<input type="text" id="bonus-scorer" value="' + sanitize(myBonus ? myBonus.scorer : '') + '" placeholder="Ex: Mbappé" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">';
+  html += '<input type="text" id="bonus-scorer" value="' + sanitize(myBonus ? myBonus.scorer : '') + '" ';
+  html += 'placeholder="Ex: Mbappé" ' + (bonusClosed ? 'disabled ' : '');
+  html += 'style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">';
   html += '</div>';
+
   if (bonusClosed) {
-  html += '<div class="match-result result-pending" style="width:100%;text-align:center;">🔒 Bonus verrouillés</div>';
-} else {
-  html += '<button class="btn-prono" onclick="saveBonus()" style="min-width:120px;">' + t('bonusSave') + '</button>';
-}
+    html += '<div class="match-result result-pending" style="width:100%;text-align:center;">🔒 Bonus verrouillés</div>';
+  } else {
+    html += '<button class="btn-prono" onclick="saveBonus()" style="min-width:120px;">' + t('bonusSave') + '</button>';
+  }
+
   html += '</div></div>';
   container.innerHTML = html;
 }
 
 async function saveBonus() {
-  
+  if (isBonusClosed()) {
+    showToast('Bonus verrouillés', 'error');
+    await loadAllData();
+    renderMatchesView();
+    return;
+  }
+
   var winner = document.getElementById('bonus-winner').value;
   var scorer = document.getElementById('bonus-scorer').value.trim();
-  var myBonus = bonusData.find(function(b) { return (b.email || '').toLowerCase().trim() === (currentUserEmail || '').toLowerCase().trim(); });
+  var myBonus = bonusData.find(function(b) {
+    return (b.email || '').toLowerCase().trim() === (currentUserEmail || '').toLowerCase().trim();
+  });
+
   try {
     if (myBonus) {
-      await grist.docApi.applyUserActions([['UpdateRecord', BONUS_TABLE, myBonus.id, { Winner_Code: winner, Top_Scorer: scorer }]]);
-      myBonus.winner = winner; myBonus.scorer = scorer;
+      await grist.docApi.applyUserActions([['UpdateRecord', BONUS_TABLE, myBonus.id, {
+        Winner_Code: winner,
+        Top_Scorer: scorer
+      }]]);
+      myBonus.winner = winner;
+      myBonus.scorer = scorer;
     } else {
-      await grist.docApi.applyUserActions([['AddRecord', BONUS_TABLE, null, { User_Email: currentUserEmail, Winner_Code: winner, Top_Scorer: scorer, Points: 0 }]]);
-      bonusData.push({ email: currentUserEmail, winner: winner, scorer: scorer, pts: 0 });
+      await grist.docApi.applyUserActions([['AddRecord', BONUS_TABLE, null, {
+        User_Email: currentUserEmail,
+        Winner_Code: winner,
+        Top_Scorer: scorer,
+        Points: 0
+      }]]);
+      bonusData.push({
+        email: currentUserEmail,
+        winner: winner,
+        scorer: scorer,
+        pts: 0
+      });
     }
+
     showToast(t('bonusSaved'), 'success');
-  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 // =============================================================================
