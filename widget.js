@@ -290,6 +290,25 @@ var MATCH_DATA = [
 // =============================================================================
 // UTILS
 // =============================================================================
+function kickoffMillis(value) {
+  if (!value) return null;
+
+  // Grist peut renvoyer les DateTime comme nombre ou comme texte selon le contexte/API.
+  if (typeof value === 'number') return value * 1000;
+
+  var parsed = Date.parse(value);
+  return isNaN(parsed) ? null : parsed;
+}
+
+function isMatchClosed(m) {
+  if (!m) return true;
+  if (m.locked) return true;
+
+  var kickoff = kickoffMillis(m.kickoffUtc);
+  if (!kickoff) return true;
+
+  return Date.now() >= kickoff;
+}
 
 function flagUrl(flagCode) {
   if (!flagCode || flagCode === 'TBD') return '';
