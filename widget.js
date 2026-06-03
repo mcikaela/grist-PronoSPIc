@@ -459,6 +459,21 @@ function isMatchClosed(m) {
   return Date.now() >= kickoff;
 }
 
+function getBonusLockMillis() {
+  var kickoffValues = matches
+    .map(function(m) { return gristDateTimeToMillis(m.kickoffUtc); })
+    .filter(function(v) { return !!v; })
+    .sort(function(a, b) { return a - b; });
+
+  return kickoffValues.length > 0 ? kickoffValues[0] : null;
+}
+
+function isBonusClosed() {
+  var firstKickoff = getBonusLockMillis();
+  if (!firstKickoff) return false;
+  return Date.now() >= firstKickoff;
+}
+
 function formatKickoffForDebug(seconds) {
   if (!seconds) return '';
   try { return new Date(seconds * 1000).toISOString(); } catch (e) { return ''; }
@@ -808,6 +823,7 @@ function setGroupFilter(group) {
 function renderMatchesView() {
   renderMatchFilters();
   renderBonusBar();
+  var bonusClosed = isBonusClosed();
   var filtered = matches.filter(function(m) {
     if (activeGroupFilter) return m.group === activeGroupFilter;
     if (activePhaseFilter !== 'all') return m.phase === activePhaseFilter;
@@ -919,12 +935,17 @@ function renderBonusBar() {
   html += '<label style="font-size:11px;font-weight:600;color:#64748b;">' + t('bonusTopScorer') + '</label>';
   html += '<input type="text" id="bonus-scorer" value="' + sanitize(myBonus ? myBonus.scorer : '') + '" placeholder="Ex: Mbappé" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;">';
   html += '</div>';
+  if (bonusClosed) {
+  html += '<div class="match-result result-pending" style="width:100%;text-align:center;">🔒 Bonus verrouillés</div>';
+} else {
   html += '<button class="btn-prono" onclick="saveBonus()" style="min-width:120px;">' + t('bonusSave') + '</button>';
+}
   html += '</div></div>';
   container.innerHTML = html;
 }
 
 async function saveBonus() {
+  
   var winner = document.getElementById('bonus-winner').value;
   var scorer = document.getElementById('bonus-scorer').value.trim();
   var myBonus = bonusData.find(function(b) { return (b.email || '').toLowerCase().trim() === (currentUserEmail || '').toLowerCase().trim(); });
