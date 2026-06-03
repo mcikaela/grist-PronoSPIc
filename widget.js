@@ -832,13 +832,24 @@ function renderMatchesView() {
     html += m.group ? t('group') + ' ' + m.group : phaseLabel(m.phase);
     var frenchKickoff = formatFrenchKickoff(m.kickoffUtc);
 
-   html += '<span>';
-   html += frenchKickoff ? ('🇫🇷 ' + frenchKickoff) : (formatMatchDate(m.date) + ' · ' + (m.time || ''));
-   if (m.time) html += ' <span style="color:#94a3b8;">local: ' + m.time + '</span>';
-   html += '</span>';
+html += '<div class="match-header" style="gap:8px;align-items:flex-start;">';
 
+html += '<span class="match-phase-badge ' + phaseClass(m.phase) + '">';
+html += m.group ? t('group') + ' ' + m.group : phaseLabel(m.phase);
+html += '</span>';
 
-    html += '</div>';
+html += '<span style="margin-left:auto;text-align:right;font-size:11px;line-height:1.25;color:#64748b;">';
+if (frenchKickoff) {
+  html += '<strong style="color:#1e40af;">🇫🇷 ' + frenchKickoff + '</strong>';
+  if (m.time) {
+    html += '<br><span style="color:#94a3b8;">local : ' + m.time + '</span>';
+  }
+} else {
+  html += formatMatchDate(m.date) + ' · ' + (m.time || '');
+}
+html += '</span>';
+
+html += '</div>';
 
     html += '<div class="match-teams">';
     html += '<div class="team-block">';
