@@ -292,7 +292,27 @@ var MATCH_DATA = [
 // =============================================================================
 // UTILS
 // =============================================================================
+function formatFrenchKickoff(value) {
+  if (!value) return '';
 
+  var d;
+
+  if (typeof value === 'number') {
+    d = new Date(value * 1000);
+  } else {
+    d = new Date(value);
+  }
+
+  if (isNaN(d.getTime())) return '';
+
+  return d.toLocaleString('fr-FR', {
+    timeZone: 'Europe/Paris',
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
 function flagUrl(flagCode) {
   if (!flagCode || flagCode === 'TBD') return '';
   return 'https://flagcdn.com/w80/' + flagCode + '.png';
@@ -810,8 +830,14 @@ function renderMatchesView() {
     html += '<div class="match-header">';
     html += '<span class="match-phase-badge ' + phaseClass(m.phase) + '">';
     html += m.group ? t('group') + ' ' + m.group : phaseLabel(m.phase);
-    html += '</span>';
-    html += '<span>' + formatMatchDate(m.date) + ' · ' + (m.time || '') + '</span>';
+    var frenchKickoff = formatFrenchKickoff(m.kickoffUtc);
+
+   html += '<span>';
+   html += frenchKickoff ? ('🇫🇷 ' + frenchKickoff) : (formatMatchDate(m.date) + ' · ' + (m.time || ''));
+   if (m.time) html += ' <span style="color:#94a3b8;">local: ' + m.time + '</span>';
+   html += '</span>';
+
+
     html += '</div>';
 
     html += '<div class="match-teams">';
