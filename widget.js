@@ -899,9 +899,9 @@ html += '<span class="score-sep">-</span>';
 html += '<input type="number" class="score-input" id="s2-' + m.num + '" value="' + ps2 + '" min="0" max="20" oninput="markPredictionDirty(' + m.num + ')">';
 html += '</div>';
 html += '<button id="btn-prono-' + m.num + '" class="btn-prono' + (myPred ? ' saved' : '') + '" onclick="savePrediction(' + m.num + ')">' + (myPred ? t('saved') : t('saveProno')) + '</button>';
-    } else if (!hasResult && !isTBD && isClosed) {
-      html += '<div class="match-result result-pending">🔒 ' + t('locked') + '</div>';
-    }
+    } else if (!hasResult && !isTBD && isClosed && !myPred) {
+  html += '<div class="match-result result-pending">🔒 ' + t('locked') + '</div>';
+}
 
     html += '<div class="match-info">🏟️ ' + sanitize(m.stadium) + ' · ' + sanitize(m.city) + '</div>';
     html += '</div>';
