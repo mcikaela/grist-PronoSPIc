@@ -96,6 +96,7 @@ var topScorers = [];
 var activeTab = 'matches';
 var activePhaseFilter = 'all';
 var activeGroupFilter = '';
+var activeDateFilter = '';
 
 var TEAMS_TABLE = 'Prono_Teams';
 var MATCHES_TABLE = 'Prono_Matches';
@@ -786,6 +787,7 @@ function generateMultipleAvatars(style, count) {
 
 function renderMatchFilters() {
   var container = document.getElementById('match-filters');
+
   var phases = [
     { key: 'all',   label: t('allMatches') },
     { key: 'group', label: t('groupStage') },
@@ -796,15 +798,39 @@ function renderMatchFilters() {
     { key: '3rd',   label: t('thirdPlace') },
     { key: 'final', label: t('final') }
   ];
+
   var html = '';
+
   phases.forEach(function(p) {
     html += '<button class="filter-btn ' + (activePhaseFilter === p.key ? 'active' : '') + '" onclick="setPhaseFilter(\'' + p.key + '\')">' + p.label + '</button>';
   });
+
   html += '<span style="width:1px;height:24px;background:#e2e8f0;margin:0 4px;"></span>';
+
   var groups = ['A','B','C','D','E','F','G','H','I','J','K','L'];
   groups.forEach(function(g) {
     html += '<button class="filter-btn ' + (activeGroupFilter === g ? 'active' : '') + '" onclick="setGroupFilter(\'' + g + '\')" style="min-width:32px;">' + g + '</button>';
   });
+
+  // Ligne des filtres par date
+  var dates = [];
+  matches.forEach(function(m) {
+    if (m.date && dates.indexOf(m.date) === -1) {
+      dates.push(m.date);
+    }
+  });
+
+  dates.sort();
+
+  html += '<div style="width:100%;height:1px;"></div>';
+  html += '<button class="filter-btn ' + (!activeDateFilter ? 'active' : '') + '" onclick="setDateFilter(\'\')">📅 Toutes les dates</button>';
+
+  dates.forEach(function(date) {
+    html += '<button class="filter-btn ' + (activeDateFilter === date ? 'active' : '') + '" onclick="setDateFilter(\'' + date + '\')">';
+    html += formatMatchDate(date);
+    html += '</button>';
+  });
+
   container.innerHTML = html;
 }
 
@@ -819,15 +845,25 @@ function setGroupFilter(group) {
   activePhaseFilter = activeGroupFilter ? 'group' : 'all';
   renderMatchesView();
 }
+function setDateFilter(date) {
+  activeDateFilter = date;
+
+  // Optionnel : on remet les filtres phase/groupe à zéro pour afficher tous les matchs de cette date
+  activePhaseFilter = 'all';
+  activeGroupFilter = '';
+
+  renderMatchesView();
+}
 
 function renderMatchesView() {
   renderMatchFilters();
   renderBonusBar();
     var filtered = matches.filter(function(m) {
-    if (activeGroupFilter) return m.group === activeGroupFilter;
-    if (activePhaseFilter !== 'all') return m.phase === activePhaseFilter;
-    return true;
-  });
+  if (activeDateFilter && m.date !== activeDateFilter) return false;
+  if (activeGroupFilter && m.group !== activeGroupFilter) return false;
+  if (activePhaseFilter !== 'all' && m.phase !== activePhaseFilter) return false;
+  return true;
+});
 
   var container = document.getElementById('matches-list');
   if (filtered.length === 0) { container.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:40px;">' + t('noMatches') + '</div>'; return; }
