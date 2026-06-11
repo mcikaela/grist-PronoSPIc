@@ -16,7 +16,7 @@ var i18n = {
     tabMatches: 'Matchs', tabGroups: 'Groupes', tabLeaderboard: 'Classement', tabMyStats: 'Mes Stats', tabProfile: 'Mon Profil',
     allMatches: 'Tous', groupStage: 'Poules', roundOf32: '1/16', roundOf16: '1/8', quarterFinals: '1/4', semiFinals: '1/2', thirdPlace: '3e place', final: 'Finale',
     today: "Aujourd'hui", tomorrow: 'Demain', all: 'Tous',
-    saveProno: 'Valider', saved: 'Validé ✓', saveChange: 'Enregistrer le changement', noMatches: 'Aucun match',
+    saveProno: 'Valider', saved: 'Validé ✓', saveChange: 'Enregistrer le changement', allDates: 'Toutes les dates', noMatches: 'Aucun match',
     pts: 'pts', exact: 'Exact !', goodResult: 'Bon résultat', wrong: 'Raté', pending: 'En attente',
     played: 'J', won: 'V', drawn: 'N', lost: 'D', goalsFor: 'BP', goalsAgainst: 'BC', diff: 'Diff', points: 'Pts',
     rank: '#', player: 'Joueur', totalPts: 'Points', exactCount: 'Exacts', goodCount: 'Bons',
@@ -42,7 +42,7 @@ var i18n = {
     tabMatches: 'Matches', tabGroups: 'Groups', tabLeaderboard: 'Leaderboard', tabMyStats: 'My Stats', tabProfile: 'My Profile',
     allMatches: 'All', groupStage: 'Groups', roundOf32: 'R32', roundOf16: 'R16', quarterFinals: 'QF', semiFinals: 'SF', thirdPlace: '3rd', final: 'Final',
     today: 'Today', tomorrow: 'Tomorrow', all: 'All',
-    saveProno: 'Submit', saved: 'Saved ✓', saveChange: 'Save change', noMatches: 'No matches',
+    saveProno: 'Submit', saved: 'Saved ✓', saveChange: 'Save change', allDates: 'All dates', noMatches: 'No matches',
     pts: 'pts', exact: 'Exact!', goodResult: 'Good result', wrong: 'Wrong', pending: 'Pending',
     played: 'P', won: 'W', drawn: 'D', lost: 'L', goalsFor: 'GF', goalsAgainst: 'GA', diff: 'GD', points: 'Pts',
     rank: '#', player: 'Player', totalPts: 'Points', exactCount: 'Exact', goodCount: 'Good',
@@ -787,6 +787,7 @@ function generateMultipleAvatars(style, count) {
 
 function renderMatchFilters() {
   var container = document.getElementById('match-filters');
+  if (!container) return;
 
   var phases = [
     { key: 'all',   label: t('allMatches') },
@@ -800,7 +801,6 @@ function renderMatchFilters() {
   ];
 
   var html = '';
-
   phases.forEach(function(p) {
     html += '<button class="filter-btn ' + (activePhaseFilter === p.key ? 'active' : '') + '" onclick="setPhaseFilter(\'' + p.key + '\')">' + p.label + '</button>';
   });
@@ -812,24 +812,19 @@ function renderMatchFilters() {
     html += '<button class="filter-btn ' + (activeGroupFilter === g ? 'active' : '') + '" onclick="setGroupFilter(\'' + g + '\')" style="min-width:32px;">' + g + '</button>';
   });
 
-  // Ligne des filtres par date
   var dates = [];
   matches.forEach(function(m) {
-    if (m.date && dates.indexOf(m.date) === -1) {
-      dates.push(m.date);
-    }
+    if (m.date && dates.indexOf(m.date) === -1) dates.push(m.date);
   });
-
   dates.sort();
 
-  html += '<div style="width:100%;height:1px;"></div>';
-  html += '<button class="filter-btn ' + (!activeDateFilter ? 'active' : '') + '" onclick="setDateFilter(\'\')">📅 Toutes les dates</button>';
-
-  dates.forEach(function(date) {
-    html += '<button class="filter-btn ' + (activeDateFilter === date ? 'active' : '') + '" onclick="setDateFilter(\'' + date + '\')">';
-    html += formatMatchDate(date);
-    html += '</button>';
-  });
+  if (dates.length > 0) {
+    html += '<div style="width:100%;height:1px;"></div>';
+    html += '<button class="filter-btn ' + (!activeDateFilter ? 'active' : '') + '" onclick="setDateFilter(\'\')">📅 ' + t('allDates') + '</button>';
+    dates.forEach(function(date) {
+      html += '<button class="filter-btn ' + (activeDateFilter === date ? 'active' : '') + '" onclick="setDateFilter(\'' + date + '\')">' + formatMatchDate(date) + '</button>';
+    });
+  }
 
   container.innerHTML = html;
 }
@@ -845,31 +840,44 @@ function setGroupFilter(group) {
   activePhaseFilter = activeGroupFilter ? 'group' : 'all';
   renderMatchesView();
 }
+
 function setDateFilter(date) {
   activeDateFilter = date;
-
-  // Optionnel : on remet les filtres phase/groupe à zéro pour afficher tous les matchs de cette date
-  activePhaseFilter = 'all';
-  activeGroupFilter = '';
-
   renderMatchesView();
 }
 
 function renderMatchesView() {
   renderMatchFilters();
   renderBonusBar();
-    var filtered = matches.filter(function(m) {
-  if (activeDateFilter && m.date !== activeDateFilter) return false;
-  if (activeGroupFilter && m.group !== activeGroupFilter) return false;
-  if (activePhaseFilter !== 'all' && m.phase !== activePhaseFilter) return false;
-  return true;
-});
+
+  var filtered = matches.filter(function(m) {
+    if (activeDateFilter && m.date !== activeDateFilter) return false;
+    if (activeGroupFilter && m.group !== activeGroupFilter) return false;
+    if (activePhaseFilter !== 'all' && m.phase !== activePhaseFilter) return false;
+    return true;
+  });
+
+  filtered.sort(function(a, b) {
+    var ka = gristDateTimeToMillis(a.kickoffUtc);
+    var kb = gristDateTimeToMillis(b.kickoffUtc);
+
+    if (!ka) ka = Date.parse((a.date || '9999-12-31') + 'T' + (a.time || '00:00') + ':00');
+    if (!kb) kb = Date.parse((b.date || '9999-12-31') + 'T' + (b.time || '00:00') + ':00');
+
+    return ka - kb || a.num - b.num;
+  });
 
   var container = document.getElementById('matches-list');
   if (filtered.length === 0) { container.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:40px;">' + t('noMatches') + '</div>'; return; }
 
   var html = '';
+  var lastDate = '';
+
   filtered.forEach(function(m) {
+    if (m.date !== lastDate) {
+      lastDate = m.date;
+      html += '<div style="grid-column:1/-1;margin:10px 0 4px;padding:8px 12px;border-radius:10px;background:#f1f5f9;color:#334155;font-weight:800;font-size:13px;">📅 ' + formatMatchDate(m.date) + '</div>';
+    }
     var team1 = getTeam(m.t1);
     var team2 = getTeam(m.t2);
     var myPred = predictions.find(function(p) { return p.matchNum === m.num; });
@@ -931,13 +939,13 @@ html += '</div>';
       var ps2 = myPred ? myPred.ps2 : 0;
       html += '<div class="match-score">';
       html += '<input type="number" class="score-input" id="s1-' + m.num + '" value="' + ps1 + '" min="0" max="20" oninput="markPredictionDirty(' + m.num + ')">';
-html += '<span class="score-sep">-</span>';
-html += '<input type="number" class="score-input" id="s2-' + m.num + '" value="' + ps2 + '" min="0" max="20" oninput="markPredictionDirty(' + m.num + ')">';
-html += '</div>';
-html += '<button id="btn-prono-' + m.num + '" class="btn-prono' + (myPred ? ' saved' : '') + '" onclick="savePrediction(' + m.num + ')">' + (myPred ? t('saved') : t('saveProno')) + '</button>';
+      html += '<span class="score-sep">-</span>';
+      html += '<input type="number" class="score-input" id="s2-' + m.num + '" value="' + ps2 + '" min="0" max="20" oninput="markPredictionDirty(' + m.num + ')">';
+      html += '</div>';
+      html += '<button id="btn-prono-' + m.num + '" class="btn-prono' + (myPred ? ' saved' : '') + '" onclick="savePrediction(' + m.num + ')">' + (myPred ? t('saved') : t('saveProno')) + '</button>';
     } else if (!hasResult && !isTBD && isClosed && !myPred) {
-  html += '<div class="match-result result-pending">🔒 ' + t('locked') + '</div>';
-}
+      html += '<div class="match-result result-pending">🔒 ' + t('locked') + '</div>';
+    }
 
     html += '<div class="match-info">🏟️ ' + sanitize(m.stadium) + ' · ' + sanitize(m.city) + '</div>';
     html += '</div>';
@@ -1038,6 +1046,7 @@ async function saveBonus() {
 // =============================================================================
 // SAVE PREDICTION
 // =============================================================================
+
 function markPredictionDirty(matchNum) {
   var s1El = document.getElementById('s1-' + matchNum);
   var s2El = document.getElementById('s2-' + matchNum);
@@ -1070,6 +1079,7 @@ function markPredictionDirty(matchNum) {
   btn.classList.toggle('saved', unchanged);
   btn.textContent = unchanged ? t('saved') : t('saveChange');
 }
+
 async function savePrediction(matchNum) {
   var s1El = document.getElementById('s1-' + matchNum);
   var s2El = document.getElementById('s2-' + matchNum);
@@ -1354,6 +1364,10 @@ window.generateNewAvatars = generateNewAvatars;
 window.selectGeneratedAvatar = selectGeneratedAvatar;
 window.changeAvatarStyle = changeAvatarStyle;
 window.switchTab = switchTab;
+window.setPhaseFilter = setPhaseFilter;
+window.setGroupFilter = setGroupFilter;
+window.setDateFilter = setDateFilter;
+window.markPredictionDirty = markPredictionDirty;
 
 async function saveProfile() {
   var displayName = document.getElementById('profile-display-name').value.trim();
