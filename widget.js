@@ -16,7 +16,7 @@ var i18n = {
     tabMatches: 'Matchs', tabGroups: 'Groupes', tabLeaderboard: 'Classement', tabMyStats: 'Mes Stats', tabProfile: 'Mon Profil',
     allMatches: 'Tous', groupStage: 'Poules', roundOf32: '1/16', roundOf16: '1/8', quarterFinals: '1/4', semiFinals: '1/2', thirdPlace: '3e place', final: 'Finale',
     today: "Aujourd'hui", tomorrow: 'Demain', all: 'Tous',
-    saveProno: 'Valider', saved: 'Validé ✓', noMatches: 'Aucun match',
+    saveProno: 'Valider', saved: 'Validé ✓', saveChange: 'Enregistrer le changement', noMatches: 'Aucun match',
     pts: 'pts', exact: 'Exact !', goodResult: 'Bon résultat', wrong: 'Raté', pending: 'En attente',
     played: 'J', won: 'V', drawn: 'N', lost: 'D', goalsFor: 'BP', goalsAgainst: 'BC', diff: 'Diff', points: 'Pts',
     rank: '#', player: 'Joueur', totalPts: 'Points', exactCount: 'Exacts', goodCount: 'Bons',
@@ -42,7 +42,7 @@ var i18n = {
     tabMatches: 'Matches', tabGroups: 'Groups', tabLeaderboard: 'Leaderboard', tabMyStats: 'My Stats', tabProfile: 'My Profile',
     allMatches: 'All', groupStage: 'Groups', roundOf32: 'R32', roundOf16: 'R16', quarterFinals: 'QF', semiFinals: 'SF', thirdPlace: '3rd', final: 'Final',
     today: 'Today', tomorrow: 'Tomorrow', all: 'All',
-    saveProno: 'Submit', saved: 'Saved ✓', noMatches: 'No matches',
+    saveProno: 'Submit', saved: 'Saved ✓', saveChange: 'Save change', noMatches: 'No matches',
     pts: 'pts', exact: 'Exact!', goodResult: 'Good result', wrong: 'Wrong', pending: 'Pending',
     played: 'P', won: 'W', drawn: 'D', lost: 'L', goalsFor: 'GF', goalsAgainst: 'GA', diff: 'GD', points: 'Pts',
     rank: '#', player: 'Player', totalPts: 'Points', exactCount: 'Exact', goodCount: 'Good',
@@ -930,14 +930,14 @@ html += '</div>';
       var ps1 = myPred ? myPred.ps1 : 0;
       var ps2 = myPred ? myPred.ps2 : 0;
       html += '<div class="match-score">';
-      html += '<input type="number" class="score-input" id="s1-' + m.num + '" value="' + ps1 + '" min="0" max="20">';
-      html += '<span class="score-sep">-</span>';
-      html += '<input type="number" class="score-input" id="s2-' + m.num + '" value="' + ps2 + '" min="0" max="20">';
-      html += '</div>';
-      html += '<button class="btn-prono' + (myPred ? ' saved' : '') + '" onclick="savePrediction(' + m.num + ')">' + (myPred ? t('saved') : t('saveProno')) + '</button>';
-    } else if (!hasResult && !isTBD && isClosed) {
-      html += '<div class="match-result result-pending">🔒 ' + t('locked') + '</div>';
-    }
+      html += '<input type="number" class="score-input" id="s1-' + m.num + '" value="' + ps1 + '" min="0" max="20" oninput="markPredictionDirty(' + m.num + ')">';
+html += '<span class="score-sep">-</span>';
+html += '<input type="number" class="score-input" id="s2-' + m.num + '" value="' + ps2 + '" min="0" max="20" oninput="markPredictionDirty(' + m.num + ')">';
+html += '</div>';
+html += '<button id="btn-prono-' + m.num + '" class="btn-prono' + (myPred ? ' saved' : '') + '" onclick="savePrediction(' + m.num + ')">' + (myPred ? t('saved') : t('saveProno')) + '</button>';
+    } else if (!hasResult && !isTBD && isClosed && !myPred) {
+  html += '<div class="match-result result-pending">🔒 ' + t('locked') + '</div>';
+}
 
     html += '<div class="match-info">🏟️ ' + sanitize(m.stadium) + ' · ' + sanitize(m.city) + '</div>';
     html += '</div>';
@@ -1038,7 +1038,38 @@ async function saveBonus() {
 // =============================================================================
 // SAVE PREDICTION
 // =============================================================================
+function markPredictionDirty(matchNum) {
+  var s1El = document.getElementById('s1-' + matchNum);
+  var s2El = document.getElementById('s2-' + matchNum);
+  var btn = document.getElementById('btn-prono-' + matchNum);
 
+  if (!s1El || !s2El || !btn) return;
+
+  var existing = predictions.find(function(p) {
+    return p.matchNum === matchNum;
+  });
+
+  if (!existing) {
+    btn.classList.remove('saved');
+    btn.textContent = t('saveProno');
+    return;
+  }
+
+  var currentS1 = parseInt(s1El.value, 10);
+  var currentS2 = parseInt(s2El.value, 10);
+  var savedS1 = parseInt(existing.ps1, 10);
+  var savedS2 = parseInt(existing.ps2, 10);
+
+  if (isNaN(currentS1)) currentS1 = 0;
+  if (isNaN(currentS2)) currentS2 = 0;
+  if (isNaN(savedS1)) savedS1 = 0;
+  if (isNaN(savedS2)) savedS2 = 0;
+
+  var unchanged = currentS1 === savedS1 && currentS2 === savedS2;
+
+  btn.classList.toggle('saved', unchanged);
+  btn.textContent = unchanged ? t('saved') : t('saveChange');
+}
 async function savePrediction(matchNum) {
   var s1El = document.getElementById('s1-' + matchNum);
   var s2El = document.getElementById('s2-' + matchNum);
